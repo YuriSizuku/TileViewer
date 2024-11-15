@@ -340,7 +340,9 @@ bool MainApp::Gui(wxString cmdline)
 {
     auto logwindow = new wxLogWindow(nullptr, "TileViewer Logcat", false);
     m_logwindow = logwindow;
+#ifdef _WIN32
     logwindow->GetFrame()->SetIcon(wxICON(IDI_ICON1));
+#endif
     logwindow->GetFrame()->SetSize(wxSize(720, 540));
     logwindow->PassMessages(false); // disable pass to mesasgebox
     wxLog::SetActiveTarget(logwindow);

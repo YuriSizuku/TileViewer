@@ -23,8 +23,10 @@ TopFrame::TopFrame() :
             wxDefaultPosition, wxSize(960, 720)) 
 {
     // load resource
+#ifdef _WIN32
     auto icon = wxICON(IDI_ICON1);
     SetIcon(icon); // load build-in icon
+#endif
     wxGetApp().SearchPlugins("./plugin"); // find decode plugins
 
     // main view
@@ -43,8 +45,10 @@ TopFrame::TopFrame() :
     this->Centre(wxBOTH);
 
     // extra part
+#ifdef _WIN32
     wxStaticBitmap* downimage = new wxStaticBitmap(leftPanel, wxID_ANY, icon);
     leftPanel->GetSizer()->Add(downimage, 0, wxEXPAND);
+#endif
     
     // menu bar (file, view, help)
     auto *menuBar = new MainMenuBar(this);
@@ -64,8 +68,12 @@ void TopFrame::OnUpdateStatus(wxCommandEvent &event)
         "%s | %s", nametile, nameplugin), 1);
 
     auto ntile = wxGetApp().m_tilesolver.m_tiles.size();
-    auto imgw = wxGetApp().m_tilesolver.m_bitmap.GetWidth();
-    auto imgh = wxGetApp().m_tilesolver.m_bitmap.GetHeight();
+    int imgw = 0, imgh = 0;
+    if(wxGetApp().m_tilesolver.RenderOk())
+    {
+        imgw = wxGetApp().m_tilesolver.m_bitmap.GetWidth();
+        imgh = wxGetApp().m_tilesolver.m_bitmap.GetHeight();
+    }
     auto scale = g_tilestyle.scale;
     SetStatusText(wxString::Format(
         "%zu tiles | %dx%dx%.1f", ntile, imgw, imgh, scale), 2);

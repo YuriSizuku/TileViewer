@@ -3,6 +3,11 @@ project(TileViewer)
 
 function(config_platform TARGET_NAME)
     if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+        target_link_libraries(${TARGET_NAME} PRIVATE
+            X11 # must below wxWidgets
+            -static-libstdc++
+            -static-libgcc
+        )
     elseif(CMAKE_SYSTEM_NAME MATCHES "Windows") # currently only support mingw on windows
         target_sources(${TARGET_NAME} PRIVATE 
             asset/icon/icon.rc
@@ -63,7 +68,6 @@ set(TILEVIEWER_CODE
 add_executable(${PROJECT_NAME}
     ${TILEVIEWER_CODE}
 )
-config_platform(${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${LUA_CODE_DIR}/src
 )
@@ -73,3 +77,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     wx::base
     wx::propgrid
 )
+config_platform(${PROJECT_NAME})

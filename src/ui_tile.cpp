@@ -19,6 +19,7 @@ wxBEGIN_EVENT_TABLE(TileView, wxWindow)
 EVT_SIZE(TileView::OnSize)
 EVT_LEFT_DOWN(TileView::OnMouseLeftDown)
 EVT_KEY_DOWN(TileView::OnKeyDown)
+// EVT_CHAR_HOOK(TileView::OnKeyDown)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(TileWindow, wxWindow)
@@ -38,7 +39,8 @@ bool TileView::ScrollPosition(int x, int y)
     int endx = startx + clientw;
     int starty = scrolly * scrollyu;
     int endy = starty + clienth;
-
+    
+    // check if the target pixel is in current client window
     if(x >= startx && x <= endx && y >= starty && y <= endy)
     {
         return false;
@@ -167,6 +169,8 @@ void TileView::OnKeyDown(wxKeyEvent& event)
 {
     int index = g_tilenav.index;
     int nrow = g_tilecfg.nrow;
+    if(event.CmdDown() || event.ControlDown() || event.AltDown()) goto on_key_down_next;
+    
     switch(event.GetKeyCode())
     {
         case 'H':
@@ -204,8 +208,11 @@ void TileView::OnKeyDown(wxKeyEvent& event)
         ScrollPosition(g_tilenav.x, g_tilenav.y);
         NOTIFY_UPDATE_PGNAV();
         this->Refresh();
+        return;
     }
-    event.DoAllowNextEvent();
+
+on_key_down_next:
+    event.Skip();
 }
 
 TileWindow::TileWindow(wxWindow *parent) 
@@ -247,7 +254,7 @@ void TileWindow::OnUpdate(wxCommandEvent &event)
     {
         m_view->m_bitmap = wxBitmap();
         m_view->SetVirtualSize(0, 0);
-        goto tile_update_finish;
+        goto update_next;
     }
 
     m_view->m_bitmap = wxGetApp().m_tilesolver.m_bitmap;
@@ -273,7 +280,7 @@ void TileWindow::OnUpdate(wxCommandEvent &event)
         m_view->DrawBoarder();
     }
 
-tile_update_finish:
+update_next:
     m_view->SetFocus();
     m_view->Refresh();
     NOTIFY_UPDATE_STATUS();

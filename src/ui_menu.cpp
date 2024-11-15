@@ -154,7 +154,7 @@ menu_plugin_failed:
 void MainMenuBar::OnStyle(wxCommandEvent& event)
 {
     wxLogMessage("[MainMenuBar::OnStyle] %s %s", 
-        this->FindItem(event.GetId())->GetName(), 
+        this->FindItem(event.GetId())->GetItemLabel(), 
         event.GetSelection() ? "enable" : "disable");
     
     g_tilestyle.style = 0;
