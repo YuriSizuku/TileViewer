@@ -197,7 +197,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     size_t nbytes = calc_tile_nbytes(&m_tilecfg.fmt);
     auto time_end = wxDateTime::UNow();
     wxLogMessage(wxString::Format(
-        "[TileSolver::Decode] decode %zu tiles with %zu bytes, in %zu ms", 
+        "[TileSolver::Decode] decode %zu tiles with %zu bytes, in %llu ms", 
         ntile, nbytes, (time_end - time_start).GetMilliseconds()));
     
     return ntile;
@@ -240,7 +240,7 @@ bool TileSolver::Render()
     auto time_end = wxDateTime::UNow();
 
     wxLogMessage(wxString::Format(
-        "[TileSolver::Render] tile (%zux%zu), image (%zux%zu), in %zu ms", 
+        "[TileSolver::Render] tile (%zux%zu), image (%zux%zu), in %llu ms", 
         tilew, tileh, imgw, imgh, (time_end - time_start).GetMilliseconds()));
     m_bitmap = bitmap; // seems automaticly release previous
 

@@ -62,7 +62,6 @@ set(TILEVIEWER_CODE
 )
 add_executable(${PROJECT_NAME}
     ${TILEVIEWER_CODE}
-    # ${TILEVIEWER_UI_CODE}
 )
 config_platform(${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -73,5 +72,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     wx::core 
     wx::base
     wx::propgrid
-    # wx::xrc
 )

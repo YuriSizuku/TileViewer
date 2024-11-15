@@ -120,7 +120,7 @@ sh -c "export CC=x86_64-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw64 BUILD_T
 sh -c "export CC=i686-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw32 BUILD_TYPE=MinSizeRel && script/build_mingw.sh"
 
 # linux  mingw x64 debug
-export CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ && bash script/build_mingw.sh
+export CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINRES=x86_64-w64-mingw32-winres && bash script/build_mingw.sh
 ```
 
 ### (2) linux
@@ -140,7 +140,7 @@ sudo apt-get -y install libc6:armhf
 sudo apt-get -y install crossbuild-essential-armhf
 sudo apt-get -y install crossbuild-essential-arm64
 
-sudo apt-get install p7zip-full git make cmake
+sudo apt-get -y install p7zip-full git make cmake
 ```
 
 then fetch depends and build
@@ -174,11 +174,11 @@ export CC=i686-linux-gnu-gcc  CXX=i686-linux-gnu-g++ BUILD_TYPE=MinSizeRel && ./
 - Other
   - [x] redirect log message to log window
   - [x] implement command lines  
+  - [x] use github action to auto build  
   - [ ] linux support (x86, x64, arm32, arm64)
-  - [ ] use github action to auto build  
 
 ## Credit
 
-[wxWidget](https://www.wxwidgets.org/)
-[lua](https://www.lua.org/)
-[CrystalTile2](https://www.gamebrew.org/wiki/CrystalTile2)
+[wxWidget](https://www.wxwidgets.org/)  
+[lua](https://www.lua.org/)  
+[CrystalTile2](https://www.gamebrew.org/wiki/CrystalTile2)  

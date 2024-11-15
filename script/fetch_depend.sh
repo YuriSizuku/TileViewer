@@ -7,7 +7,7 @@ function fetch_lua()
         echo "## fetch_lua $LUA_NAME"
         curl -fsSL http://www.lua.org/ftp/$LUA_NAME.tar.gz -o depend/$LUA_NAME.tar.gz 
         tar zxf depend/$LUA_NAME.tar.gz -C depend
-        cp -r script/patch/lua.cmake $LUA_DIR/CmakeLists.txt
+        cp -r script/patch/lua.cmake $LUA_DIR/CMakeLists.txt
     fi
 }
 
