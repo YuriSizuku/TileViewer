@@ -11,6 +11,10 @@ env:
 
 jobs:
   build_mingw:
+    strategy:
+      matrix: 
+        arch: [{prefix: i686, suffix: x86}, {prefix: x86_64, suffix: x64}]
+
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -22,30 +26,20 @@ jobs:
         tar xf /tmp/llvm-mingw.tar.xz -C /tmp
         _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64 
         sudo mv -f ${_tmppath} $MINGWSDK
-        chmod +x script/*.sh
 
-    - name: build x86
+    - name: build ${{ matrix.arch.suffix }}
       run: |
-        mkdir build_mingw32
-        export CC=${MINGWSDK}/bin/i686-w64-mingw32-clang
-        export WINRES=${MINGWSDK}/bin/i686-w64-mingw32-windres
-        export BUILD_DIR=$(pwd)/build_mingw32
-        export BUILD_TYPE=MinSizeRel
-        bash script/build_mingw.sh
-
-    - name: build_x64
-      run: |
-        mkdir build_mingw64
-        export CC=${MINGWSDK}/bin/x86_64-w64-mingw32-clang
-        export WINRES=${MINGWSDK}/bin/x86_64-w64-mingw32-windres
-        export BUILD_DIR=$(pwd)/build_mingw64
+        mkdir build
+        export PATH=${MINGWSDK}/bin:$PATH
+        export CC=${{ matrix.arch.prefix }}-w64-mingw32-clang
+        export WINRES=${{ matrix.arch.prefix }}-w64-mingw32-windres
+        export BUILD_DIR=build
         export BUILD_TYPE=MinSizeRel
         bash script/build_mingw.sh
     
     - name: prepare release
       run: |
-        mv build_mingw32/TileViewer.exe TileViewer_${{  github.ref_name }}_x86.exe
-        mv build_mingw64/TileViewer.exe TileViewer_${{  github.ref_name }}_x64.exe
+        mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}.exe
       
     - name: create release
       uses: ncipollo/release-action@v1
