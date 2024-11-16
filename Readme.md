@@ -2,7 +2,9 @@
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/yurisizuku/TileViewer?color=green&label=TileViewer) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_win.yml?label=win(x86|x64)&style=flat-square) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_linux.yml?label=linux(x86|x64|arm32|arm64)&style=flat-square)
 
-☘️ A cross platform tool to visulize and analyze texture (usually used for console game font) by tiles.  It is inspired by `Crystal Tile 2`, and more flexible with custom lua script (for more complex situation, such as swizzle) and command line support.  Also, it supports for droping file, save decoded image and show cursor moving in tiles.  
+☘️ A cross platform tool to visulize and analyze texture (usually used for console game font) by tiles.  It is inspired by `Crystal Tile 2`, and more flexible with custom lua script (for more complex situation, such as swizzle) and command line support.  
+
+Also, it supports for droping file, save decoded image and show cursor moving in tiles.  Futhermore, the window is flexible for changing size and support for zooming in and out with converting the client coordinate to logical coordinate.  
 
 The main purpose is for analyzing game font or textures.  
 
@@ -119,12 +121,27 @@ m2 --> c2
     "configurations": [
         {
             "name": "Linux x64",
-            "type": "gdb",
+            "type": "cppdbg",
             "request": "launch",
-            "arguments": "",  
-            "target": "${workspaceRoot}/build_linux64/TileViewer",
+            "program": "${workspaceRoot}/build_linux64/TileViewer",
+            "args": ["--inpath", "../asset/sample/it.bin",  "--width", "20", "--height", "18", "--bpp 2", "--nbytes 92"],
+            "stopAtEntry": false,
             "cwd": "${workspaceRoot}/build_linux64",
-            "valuesFormatting": "parseText"
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ]
 }
@@ -232,21 +249,22 @@ export DOCKER_ARCH=aarch64 BUILD_DIR=build_linuxa64_docker BUILD_TYPE=MinSizeRel
   * [x] decoder interface with different plugin (builtin, lua)
   * [x] built-in decoder, 2|4|8bpp, 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)
   * [ ] extern lua decoder api implement
+  * [ ] multi thread decoding, rendering
 
 * UI
   * [x] start up with hello world, cmake structure for the project  
   * [x] inital layout, left config view, right tile view, top menu, bottom status
   * [x] select and render tiles in real time when format changes
-  * [ ] scale render tile images (zoom in/out)
+  * [x] scale render tile images (zoom in/out) ([v0.1.5](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
   * [ ] color palette load, save editor  
 
 * Build
   * [x] redirect log message to log window
   * [x] implement command lines  
-  * [x] use github action to auto build  
-  * [x] llvm-mingw compile (x86, x64)
-  * [x] linux compile (x86, x64)
-  * [x] linux cross compile by docker (arm32, arm64)
+  * [x] use github action to auto build ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))
+  * [x] llvm-mingw compile (x86, x64) ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))
+  * [x] linux compile (x86, x64) ([v0.1.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
+  * [x] linux cross compile by docker (arm32, arm64) ([v0.1.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
 
 ## Issues
 

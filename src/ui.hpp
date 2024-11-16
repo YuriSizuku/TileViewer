@@ -103,7 +103,13 @@ class TileWindow;
 class TileView: public wxScrolledWindow
 {
 public:
-    bool ScrollPosition(int x, int y);
+    // scale logic pos -> client pos
+    int ScaleVal(int val);
+    wxSize ScaleVal(const wxSize &val);
+    // descale client pos -> logic pos
+    int DeScaleVal(int val);
+    wxSize DeScaleVal(const wxSize &val);
+    bool ScrollPosition(int x, int y); // the pos in m_bitmap
 
     TileView(wxWindow *parent);
     virtual void OnDraw(wxDC& dc) wxOVERRIDE;
@@ -111,11 +117,14 @@ public:
     void OnKeyDown(wxKeyEvent& event);
     void OnSize(wxSizeEvent& event);
 
-    wxBitmap m_bitmap;
+    wxBitmap m_bitmap; // origin size, dynamicly blit when OnDraw
+    float m_scale = 1.f;
 
 private:
     friend class TileWindow;
-    void DrawBoarder();
+    void DrawBoarder(); // draw boarders for every tiles
+    int AutoRow(); // auto set nrow to fit the window
+
     wxDECLARE_EVENT_TABLE();
 };
 

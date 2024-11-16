@@ -168,13 +168,19 @@ void MainMenuBar::OnScale(wxCommandEvent& event)
 {
     wxLogMessage("[MainMenuBar::OnScale] %s", 
         event.GetId() == Menu_ScaleDown ? "scale down": "scale up");
+    
+    // scale range 0.25, 0.5, 0.75, 1, 2, 3, 4
     if(event.GetId() == Menu_ScaleDown)
     {
-        if(g_tilestyle.scale > 0.6) g_tilestyle.scale /= 2;
+        if(g_tilestyle.scale > 1) g_tilestyle.scale -= 1;
+        else g_tilestyle.scale -= 0.25;
+        g_tilestyle.scale = wxMax<float>(g_tilestyle.scale, 0.25f);
     }
     else if(event.GetId() == Menu_ScaleUp)
     {
-        if(g_tilestyle.scale < 1.9) g_tilestyle.scale *= 2;
+        if(g_tilestyle.scale >= 1) g_tilestyle.scale += 1;
+        else g_tilestyle.scale += 0.25;
+        g_tilestyle.scale = wxMin<float>(g_tilestyle.scale, 4.f);
     }
     else
     {
