@@ -1,6 +1,6 @@
 # Tile Viewer
 
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/yurisizuku/TileViewer?color=green&label=TileViewer)![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_win.yml?label=win(x86|x64)&style=flat-square) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_linux.yml?label=linux(x86|x64)&style=flat-square)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/yurisizuku/TileViewer?color=green&label=TileViewer)![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_win.yml?label=win(x86|x64)&style=flat-square) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_linux.yml?label=linux(x86|x64|arm32|arm64)&style=flat-square)
 
 ☘️ A cross platform tool to visulize and analyze texture (usually used for console game font) by tiles.  It is inspired by `Crystal Tile 2`, and more flexible with custom lua script (for more complex situation, such as swizzle) and command line support.  Also, it supports for droping file, save decoded image and show cursor moving in tiles.  
 
@@ -201,18 +201,29 @@ sudo apt-get -y install libc6:armhf
 sudo apt-get -y install libgtk-3-dev:armhf libx11-dev:armhf
 ```
 
-then fetch depends and build
+linux local build
 
 ``` sh
 git clone https://github.com/YuriSizuku/TileViewer.git
 cd TileViewer
 chmod +x script/*.sh
 
-# linu x64 debug
+# linux x64 debug
 export CC=x86_64-linux-gnu-gcc CXX=x86_64-linux-gnu-g++ BUILD_DIR=build_linux64 BUILD_TYPE=Debug && bash script/build_linux.sh
 
 # linux x86_release
 export CC=i686-linux-gnu-gcc CXX=i686-linux-gnu-g++ BUILD_DIR=build_linux32 BUILD_TYPE=MinSizeRel && bash script/build_linux.sh
+```
+
+linux cross build by docker
+
+``` sh
+sudo apt-get -y install qemu-user-static binfmt-support
+
+export DOCKER_ARCH=i386 BUILD_DIR=build_linux32_docker BUILD_TYPE=MinSizeRel && bash script/build_docker.sh
+export DOCKER_ARCH=x86_64 BUILD_DIR=build_linux64_docker BUILD_TYPE=MinSizeRel && bash script/build_docker.sh
+export DOCKER_ARCH=armhf BUILD_DIR=build_linuxa32_docker BUILD_TYPE=MinSizeRel USE_BUILDX=1 && bash script/build_docker.sh
+export DOCKER_ARCH=aarch64 BUILD_DIR=build_linuxa64_docker BUILD_TYPE=MinSizeRel USE_BUILDX=1 && bash script/build_docker.sh
 ```
 
 ## Roadmap
@@ -235,7 +246,7 @@ export CC=i686-linux-gnu-gcc CXX=i686-linux-gnu-g++ BUILD_DIR=build_linux32 BUIL
   * [x] use github action to auto build  
   * [x] llvm-mingw compile (x86, x64)
   * [x] linux compile (x86, x64)
-  * [ ] linux cross compile by dockerx (arm32, arm64)
+  * [x] linux cross compile by docker (arm32, arm64)
 
 ## Issues
 

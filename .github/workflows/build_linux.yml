@@ -1,4 +1,4 @@
-name: build linux x86, x64
+name: build linux
 on:
   push: {tags:  ['v*']} #  Push events to matching v*, i.e. v1.0, v20.15.10
   pull_request: 
@@ -7,10 +7,10 @@ permissions:
   contents: write
 
 jobs:
-  build_linux:
+  build_linux_local:
     strategy:
       matrix: 
-        arch: [{prefix: x86_64, suffix: x64}, {prefix: i686, suffix: x86}]
+        arch: [{prefix: i386, suffix: x86}, {prefix: x86_64, suffix: x64}]
 
     runs-on: ubuntu-24.04
     steps:
@@ -18,28 +18,61 @@ jobs:
 
     - name: init enviroment
       run: |
-        if [ "${{ matrix.arch.prefix }}" = "i686" ]; then
-          sudo dpkg --add-architecture i386
-          sudo apt-get -y update
-          sudo apt-get -y install gcc-multilib g++-multilib gdb-multiarch
-          sudo apt-get -y install crossbuild-essential-i386
-          sudo apt-get -y install libc6:i386
-          sudo apt-get -y install libgtk-3-dev:i386 libx11-dev:i386
-          sudo mv -f /usr/bin/i386-linux-gnu-pkg-config /usr/bin/pkg-config
-        else
-          sudo apt-get -y install build-essential
-          sudo apt-get -y install libgtk-3-dev libx11-dev
-        fi
+        sudo apt-get -y install qemu-user-static binfmt-support
         sudo apt-get -y install p7zip-full git cmake
 
     - name: build ${{ matrix.arch.suffix }}
       run: |
+        mkdir -p depend
+        source script/fetch_depend.sh
+        fetch_lua
+        fetch_wxwidgets
+
         mkdir build
-        export CC=${{ matrix.arch.prefix }}-linux-gnu-gcc
-        export CXX=${{ matrix.arch.prefix }}-linux-gnu-g++
+        export DOCKER_ARCH=${{ matrix.arch.prefix }}
         export BUILD_DIR=build
         export BUILD_TYPE=MinSizeRel
-        bash script/build_linux.sh
+        bash script/build_docker.sh
+    
+    - name: prepare release
+      run: |
+        mv build/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
+      
+    - name: create release
+      uses: ncipollo/release-action@v1
+      if: github.event_name == 'push'
+      with:
+        artifacts: "TileViewer_*"
+        allowUpdates: "true"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  build_linux_cross:
+    strategy:
+      matrix: 
+        arch: [{prefix: armhf, suffix: arm32}, {prefix: aarch64, suffix: arm64}]
+
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: init enviroment
+      run: |
+        sudo apt-get -y install qemu-user-static binfmt-support
+        sudo apt-get -y install p7zip-full git cmake
+
+    - name: build ${{ matrix.arch.suffix }}
+      run: |
+        mkdir -p depend
+        source script/fetch_depend.sh
+        fetch_lua
+        fetch_wxwidgets
+        
+        mkdir build
+        export DOCKER_ARCH=${{ matrix.arch.prefix }}
+        export BUILD_DIR=build
+        export BUILD_TYPE=MinSizeRel
+        export USE_BUILDX=1
+        bash script/build_docker.sh
     
     - name: prepare release
       run: |
