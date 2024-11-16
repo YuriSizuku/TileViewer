@@ -18,16 +18,11 @@ jobs:
 
     - name: init enviroment
       run: |
-        sudo apt-get -y install qemu-user-static binfmt-support
-        sudo apt-get -y install p7zip-full git cmake
+        sudo apt-get -qq -y install qemu-user-static binfmt-support
+        sudo apt-get -qq -y install p7zip-full git cmake
 
     - name: build ${{ matrix.arch.suffix }}
       run: |
-        mkdir -p depend
-        source script/fetch_depend.sh
-        fetch_lua
-        fetch_wxwidgets
-
         mkdir build
         export DOCKER_ARCH=${{ matrix.arch.prefix }}
         export BUILD_DIR=build
@@ -37,6 +32,7 @@ jobs:
     - name: prepare release
       run: |
         mv build/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
+        readelf -h TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
       
     - name: create release
       uses: ncipollo/release-action@v1
@@ -49,7 +45,8 @@ jobs:
   build_linux_cross:
     strategy:
       matrix: 
-        arch: [{prefix: armhf, suffix: arm32}, {prefix: aarch64, suffix: arm64}]
+        arch: [{prefix: armhf, suffix: arm32, cache: build_linuxa32_docker}, 
+               {prefix: aarch64, suffix: arm64, cache: build_linuxa64_docker}]
 
     runs-on: ubuntu-24.04
     steps:
@@ -57,26 +54,24 @@ jobs:
 
     - name: init enviroment
       run: |
-        sudo apt-get -y install qemu-user-static binfmt-support
-        sudo apt-get -y install p7zip-full git cmake
+        sudo apt-get -qq -y install qemu-user-static binfmt-support
+        sudo apt-get -qq -y install p7zip-full git cmake
+        curl -fsSL https://github.com/YuriSizuku/TileViewer/releases/download/v0.1/${{ matrix.arch.cache }}.tar.xz -O
+        tar xjf ${{ matrix.arch.cache }}.tar.xz
+        ls -la ${{ matrix.arch.cache }}/
 
     - name: build ${{ matrix.arch.suffix }}
-      run: |
-        mkdir -p depend
-        source script/fetch_depend.sh
-        fetch_lua
-        fetch_wxwidgets
-        
-        mkdir build
+      run: |        
         export DOCKER_ARCH=${{ matrix.arch.prefix }}
-        export BUILD_DIR=build
+        export BUILD_DIR=${{ matrix.arch.cache }}
         export BUILD_TYPE=MinSizeRel
         export USE_BUILDX=1
         bash script/build_docker.sh
     
     - name: prepare release
       run: |
-        mv build/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
+        mv ${{ matrix.arch.cache }}/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
+        readelf -h TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
       
     - name: create release
       uses: ncipollo/release-action@v1
