@@ -118,7 +118,7 @@ void MainMenuBar::OnSave(wxCommandEvent& WXUNUSED(event))
     wxString defaultName = wxString::Format("%s_%d_%d_%d", 
         wxGetApp().m_tilesolver.m_infile.GetName(), g_tilecfg.w, g_tilecfg.h, g_tilecfg.nrow);
     wxFileDialog filedialog(this, "Save tile decode image", "", defaultName,
-        "png files (*.png)|*.png|jpg files (*.jpg)|*.jpg|bmp files (*.bmp)|*.bmp",  
+        "png files (*.png)|*.png|bmp files (*.bmp)|*.bmp",  
         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if(filedialog.ShowModal()==wxID_CANCEL) return;
     

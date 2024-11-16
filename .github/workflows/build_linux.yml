@@ -10,7 +10,7 @@ jobs:
   build_linux:
     strategy:
       matrix: 
-        arch: [{prefix: x86_64, suffix: x64}] # {prefix: i686, suffix: x86}
+        arch: [{prefix: x86_64, suffix: x64}, {prefix: i686, suffix: x86}]
 
     runs-on: ubuntu-24.04
     steps:
@@ -21,25 +21,29 @@ jobs:
         if [ "${{ matrix.arch.prefix }}" = "i686" ]; then
           sudo dpkg --add-architecture i386
           sudo apt-get -y update
+          sudo apt-get -y install gcc-multilib g++-multilib gdb-multiarch
           sudo apt-get -y install crossbuild-essential-i386
           sudo apt-get -y install libc6:i386
-          sudo apt-get -y install libgtk-3-dev:i386
+          sudo apt-get -y install libgtk-3-dev:i386 libx11-dev:i386
+          sudo mv -f /usr/bin/i386-linux-gnu-pkg-config /usr/bin/pkg-config
         else
-          sudo apt-get -y install libgtk-3-dev
+          sudo apt-get -y install build-essential
+          sudo apt-get -y install libgtk-3-dev libx11-dev
         fi
-        sudo apt-get -y install p7zip-full git make cmake gcc
+        sudo apt-get -y install p7zip-full git cmake
 
     - name: build ${{ matrix.arch.suffix }}
       run: |
         mkdir build
         export CC=${{ matrix.arch.prefix }}-linux-gnu-gcc
+        export CXX=${{ matrix.arch.prefix }}-linux-gnu-g++
         export BUILD_DIR=build
         export BUILD_TYPE=MinSizeRel
         bash script/build_linux.sh
     
     - name: prepare release
       run: |
-        mv build/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}
+        mv build/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
       
     - name: create release
       uses: ncipollo/release-action@v1

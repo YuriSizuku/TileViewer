@@ -25,6 +25,16 @@ function(config_platform TARGET_NAME)
     endif()
 endfunction()
 
+# global config
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    if(CMAKE_C_COMPILER MATCHES i686) # multi arch for x86
+        set(CMAKE_SYSTEM_LIBRARY_PATH /usr/lib/i386-linux-gnu) # this is very important
+        set(FIND_LIBRARY_USE_LIB64_PATHS OFF)
+        set(CMAKE_IGNORE_PATH /lib /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu)
+        set(wxUSE_LIBJPEG OFF)
+    endif()
+endif()
+
 # add lua
 set(LUA_CODE_DIR depend/lua-5.4.7)
 add_subdirectory(${LUA_CODE_DIR})

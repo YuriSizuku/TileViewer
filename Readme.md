@@ -1,6 +1,6 @@
 # Tile Viewer
 
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/yurisizuku/TileViewer?color=green&label=TileViewer)![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_win.yml?label=win(x64)&style=flat-square) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_linux.yml?label=linux(x86|x64)&style=flat-square)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/yurisizuku/TileViewer?color=green&label=TileViewer)![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_win.yml?label=win(x86|x64)&style=flat-square) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_linux.yml?label=linux(x86|x64)&style=flat-square)
 
 ☘️ A cross platform tool to visulize and analyze texture (usually used for console game font) by tiles.  It is inspired by `Crystal Tile 2`, and more flexible with custom lua script (for more complex situation, such as swizzle) and command line support.  Also, it supports for droping file, save decoded image and show cursor moving in tiles.  
 
@@ -179,26 +179,26 @@ export CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-m
 install dependencies at first
 
 ``` sh
-# for x86, x64
+# for general
+sudo apt-get -y install build-essential
+sudo apt-get -y install p7zip-full git cmake
+sudo apt-get -y install libgtk-3-dev libx11-dev
+
+# for cross x86
 sudo dpkg --add-architecture i386
 sudo apt-get -y update
-# sudo apt-get -y install gcc-multilib g++-multilib gdb-multiarch
+sudo apt-get -y install gcc-multilib g++-multilib gdb-multiarch
 sudo apt-get -y install crossbuild-essential-i386
 sudo apt-get -y install libc6:i386
-sudo apt-get -y install libgtk-3-dev:i386
-sudo apt-get -y install libgtk-3-dev
+sudo apt-get -y install libgtk-3-dev:i386 libx11-dev:i386
 
-# for arm. arm64
+# for cross armhf
 sudo dpkg --add-architecture armhf
 sudo apt-get -y update
 sudo apt-get -y install crossbuild-essential-armhf
 sudo apt-get -y install crossbuild-essential-arm64
 sudo apt-get -y install libc6:armhf
-sudo apt-get -y install libgtk-3-dev:armhf
-sudo apt-get -y install libgtk-3-dev 
-
-# for general
-sudo apt-get -y install p7zip-full git make cmake
+sudo apt-get -y install libgtk-3-dev:armhf libx11-dev:armhf
 ```
 
 then fetch depends and build
@@ -209,10 +209,10 @@ cd TileViewer
 chmod +x script/*.sh
 
 # linu x64 debug
-export CC=x86_64-linux-gnu-gcc CXX=x86_64-linux-gnu-g++ BUILD_DIR=build_linux64 BUILD_TYPE=Debug && ./script/build_linux.sh
+export CC=x86_64-linux-gnu-gcc CXX=x86_64-linux-gnu-g++ BUILD_DIR=build_linux64 BUILD_TYPE=Debug && bash script/build_linux.sh
 
 # linux x86_release
-export CC=i686-linux-gnu-gcc  CXX=i686-linux-gnu-g++ BUILD_DIR=build_linux32 BUILD_TYPE=MinSizeRel && ./script/build_linux.sh
+export CC=i686-linux-gnu-gcc CXX=i686-linux-gnu-g++ BUILD_DIR=build_linux32 BUILD_TYPE=MinSizeRel && bash script/build_linux.sh
 ```
 
 ## Roadmap
@@ -229,11 +229,13 @@ export CC=i686-linux-gnu-gcc  CXX=i686-linux-gnu-g++ BUILD_DIR=build_linux32 BUI
   * [ ] scale render tile images (zoom in/out)
   * [ ] color palette load, save editor  
 
-* Other
+* Build
   * [x] redirect log message to log window
   * [x] implement command lines  
   * [x] use github action to auto build  
-  * [x] linux support (x86, x64, arm32, arm64)
+  * [x] llvm-mingw compile (x86, x64)
+  * [x] linux compile (x86, x64)
+  * [ ] linux cross compile by dockerx (arm32, arm64)
 
 ## Issues
 

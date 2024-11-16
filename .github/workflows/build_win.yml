@@ -39,7 +39,7 @@ jobs:
     
     - name: prepare release
       run: |
-        mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}.exe
+        mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_win.exe
       
     - name: create release
       uses: ncipollo/release-action@v1

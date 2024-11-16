@@ -415,7 +415,7 @@ bool MainApp::OnInit()
 
     // load decode methods
     wxImage::AddHandler(new wxPNGHandler);
-    wxImage::AddHandler(new wxJPEGHandler);
+    // wxImage::AddHandler(new wxJPEGHandler); // on linux libjpeg.so.8 not work
     SearchPlugins("plugin"); 
     if(!m_tilesolver.m_pluginfile.GetFullPath().Length()) 
         m_tilesolver.m_pluginfile = m_pluginfiles[0];
