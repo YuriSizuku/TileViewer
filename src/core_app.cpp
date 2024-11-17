@@ -1,6 +1,9 @@
 /**
  * implement the major methods for tile viewer
  *   developed by devseed
+ * 
+ *  dataflow: filebuf -(decode)-> tiles bytes -(render)-> 
+ *            logicial bitmap -(scale)-> window bitmap
  */
 
 #include <map>

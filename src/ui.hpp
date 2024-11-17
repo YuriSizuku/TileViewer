@@ -109,21 +109,24 @@ public:
     // descale client pos -> logic pos
     int DeScaleVal(int val);
     wxSize DeScaleVal(const wxSize &val);
-    bool ScrollPosition(int x, int y); // the pos in m_bitmap
+    bool ScrollPosition(int x, int y); // the pos in logical bitmap
 
     TileView(wxWindow *parent);
-    virtual void OnDraw(wxDC& dc) wxOVERRIDE;
+    virtual void OnDraw(wxDC& dc) wxOVERRIDE; // blit logical bitmap to window
     void OnMouseLeftDown(wxMouseEvent& event);
+    void OnMouseWheel(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent& event);
     void OnSize(wxSizeEvent& event);
 
-    wxBitmap m_bitmap; // origin size, dynamicly blit when OnDraw
-    float m_scale = 1.f;
+    wxBitmap m_bitmap; // logical bitmap, dynamicly blit when OnDraw
+    float m_scale = 1.f; // bitmap scale to window
 
 private:
     friend class TileWindow;
-    void DrawBoarder(); // draw boarders for every tiles
-    int AutoRow(); // auto set nrow to fit the window
+    bool PreRender(); // try to get logical bitmap pre render
+    int AutoRow(); // auto set nrow to fit the window on logical bitmap
+    bool DrawBoarder(); // draw boarders for every tiles on logical bitmap
+    bool DrawStyle();  // draw all the tile styles
 
     wxDECLARE_EVENT_TABLE();
 };

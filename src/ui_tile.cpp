@@ -19,8 +19,8 @@ wxDEFINE_EVENT(EVENT_UPDATE_TILES, wxCommandEvent);
 wxBEGIN_EVENT_TABLE(TileView, wxWindow)
 EVT_SIZE(TileView::OnSize)
 EVT_LEFT_DOWN(TileView::OnMouseLeftDown)
+EVT_MOUSEWHEEL(TileView::OnMouseWheel)
 EVT_KEY_DOWN(TileView::OnKeyDown)
-// EVT_CHAR_HOOK(TileView::OnKeyDown)
 wxEND_EVENT_TABLE()
 
 wxBEGIN_EVENT_TABLE(TileWindow, wxWindow)
@@ -48,37 +48,6 @@ wxSize TileView::DeScaleVal(const wxSize &val)
     return wxSize(DeScaleVal(val.GetWidth()), DeScaleVal(val.GetHeight()));
 }
 
-int TileView::AutoRow()
-{
-    if(!wxGetApp().m_tilesolver.DecodeOk()) return -1;
-    
-    // calculate the auto nrow
-    auto windoww = this->GetClientSize().GetWidth();
-    auto tilew = g_tilecfg.w;
-    auto nrow = DeScaleVal(windoww) / tilew;
-    if(!nrow) nrow++;
-    
-    // resize nrow and prepare image
-    wxGetApp().m_tilesolver.m_tilecfg.nrow = nrow;
-    if(!wxGetApp().m_tilesolver.Render()) return -1;
-    
-    // update with new nrow
-    g_tilecfg.nrow = (uint16_t)nrow;
-    wxGetApp().m_configwindow->m_pg->SetPropertyValue("tilecfg.nrow", (long)nrow);
-    this->m_bitmap = wxGetApp().m_tilesolver.m_bitmap;
-    this->SetVirtualSize(this->m_bitmap.GetSize());
-    if(g_tilestyle.style & TILE_STYLE_BOARDER)
-    {
-        DrawBoarder();
-    }
-
-    // sync the nav values
-    g_tilenav.offset = -1;
-    sync_tilenav(&g_tilenav, &g_tilecfg);
-    
-    return nrow;
-}
-
 bool TileView::ScrollPosition(int x, int y)
 {
     int scrollxu, scrollyu; 
@@ -104,8 +73,54 @@ bool TileView::ScrollPosition(int x, int y)
     }
 }
 
-void TileView::DrawBoarder()
+bool TileView::PreRender()
 {
+    // try decode and render at first
+    if(wxGetApp().m_tilesolver.DecodeOk())
+    {
+        wxGetApp().m_tilesolver.Render();
+    }
+
+    if(!wxGetApp().m_tilesolver.RenderOk())
+    {
+        m_bitmap = wxBitmap();
+        SetVirtualSize(0, 0);
+        return false;
+    }
+    m_bitmap = wxGetApp().m_tilesolver.m_bitmap;
+    return true;
+}
+
+int TileView::AutoRow()
+{
+    if(!wxGetApp().m_tilesolver.DecodeOk()) return -1;
+    
+    // calculate the auto nrow
+    auto windoww = GetClientSize().GetWidth();
+    auto tilew = g_tilecfg.w;
+    auto nrow = DeScaleVal(windoww) / tilew;
+    if(!nrow) nrow++;
+    
+    // resize nrow and prepare image
+    wxGetApp().m_tilesolver.m_tilecfg.nrow = nrow;
+    if(!wxGetApp().m_tilesolver.Render()) return -1;
+    
+    // update with new nrow
+    g_tilecfg.nrow = (uint16_t)nrow;
+    wxGetApp().m_configwindow->m_pg->SetPropertyValue("tilecfg.nrow", (long)nrow);
+    m_bitmap = wxGetApp().m_tilesolver.m_bitmap;
+    SetVirtualSize(m_bitmap.GetSize());
+
+    // sync the nav values
+    g_tilenav.offset = -1;
+    sync_tilenav(&g_tilenav, &g_tilecfg);
+    
+    return nrow;
+}
+
+bool TileView::DrawBoarder()
+{
+    if(!m_bitmap.IsOk()) return false;
     wxMemoryDC memdc(m_bitmap);
     memdc.SetPen(*wxGREY_PEN);
     memdc.SetBrush(wxBrush(*wxGREEN, wxTRANSPARENT));
@@ -120,6 +135,40 @@ void TileView::DrawBoarder()
             memdc.DrawRectangle(x, y, tilew, tileh);
         }
     }
+    return true;
+}
+
+bool TileView::DrawStyle()
+{
+    if(!m_bitmap.IsOk()) return false;
+    
+    // check reset window
+    if(g_tilestyle.reset_scale)
+    {
+        auto tilewindow_w = m_bitmap.GetSize().GetWidth();
+        auto configwindow_w =  wxGetApp().m_configwindow->GetSize().GetWidth();
+        wxGetApp().GetTopWindow()->SetSize(tilewindow_w + configwindow_w + 40, 
+            wxGetApp().GetTopWindow()->GetSize().GetHeight());
+        g_tilestyle.reset_scale = false;
+        m_scale = 1.f;
+    }
+    else
+    {
+        m_scale = g_tilestyle.scale;
+    }
+
+    // check tile style and render them
+    SetVirtualSize(ScaleVal(m_bitmap.GetSize()));
+    if(g_tilestyle.style & TILE_STYLE_AUTOROW)
+    {
+        AutoRow();
+    }
+    if(g_tilestyle.style & TILE_STYLE_BOARDER)
+    {
+        DrawBoarder();
+    }
+
+    return true;
 }
 
 TileView::TileView(wxWindow *parent)
@@ -131,7 +180,7 @@ TileView::TileView(wxWindow *parent)
     // this->SetBackgroundStyle(wxBG_STYLE_PAINT); // use this to prevent automatic erase
 }
 
-void TileView::OnDraw(wxDC& dc) // when resize
+void TileView::OnDraw(wxDC& dc)
 {
     int scrollxu, scrollyu; 
     int scrollx = this->GetScrollPos(wxHORIZONTAL);
@@ -143,7 +192,7 @@ void TileView::OnDraw(wxDC& dc) // when resize
         return;
     }
 
-    // draw tiles, logic coord is for window
+    // blit tiles, logic coord is for window
     wxMemoryDC memdc(m_bitmap);
     int logicw = memdc.GetSize().GetWidth();
     int logich = memdc.GetSize().GetHeight();
@@ -181,14 +230,14 @@ void TileView::OnSize(wxSizeEvent& event)
     
     if(g_tilestyle.style & TILE_STYLE_AUTOROW)
     {
-        AutoRow();
+        DrawStyle();
         this->Refresh();
     }
 }
 
 void TileView::OnMouseLeftDown(wxMouseEvent& event)
 {
-    if(!wxGetApp().m_tilesolver.RenderOk()) return;
+    if(!m_bitmap.IsOk()) return;
 
     auto clientpt = event.GetPosition();
     auto unscollpt = CalcUnscrolledPosition(clientpt);
@@ -211,12 +260,36 @@ void TileView::OnMouseLeftDown(wxMouseEvent& event)
     this->Refresh();
 }
 
+void TileView::OnMouseWheel(wxMouseEvent& event)
+{
+
+    if(!event.ControlDown()) goto mouse_wheel_next;
+    if(event.GetWheelRotation() < 0)
+    {
+        if(g_tilestyle.scale > 1) g_tilestyle.scale -= 1;
+        else g_tilestyle.scale -= 0.25;
+        g_tilestyle.scale = wxMax<float>(g_tilestyle.scale, 0.25f);
+    }
+    else
+    {
+        if(g_tilestyle.scale >= 1) g_tilestyle.scale += 1;
+        else g_tilestyle.scale += 0.25;
+        g_tilestyle.scale = wxMin<float>(g_tilestyle.scale, 4.f);
+    }
+    DrawStyle();
+    NOTIFY_UPDATE_STATUS(); 
+    this->Refresh();
+
+mouse_wheel_next:
+    event.Skip();
+}
+
 void TileView::OnKeyDown(wxKeyEvent& event)
 {
     int index = g_tilenav.index;
     int nrow = g_tilecfg.nrow;
     int col = (index - 1) % nrow;
-    if(event.CmdDown() || event.ControlDown() || event.AltDown()) goto on_key_down_next;
+    if(event.CmdDown() || event.ControlDown() || event.AltDown()) goto key_down_next;
     
     switch(event.GetKeyCode())
     {
@@ -255,11 +328,11 @@ void TileView::OnKeyDown(wxKeyEvent& event)
         sync_tilenav(&g_tilenav, &g_tilecfg);
         ScrollPosition(g_tilenav.x, g_tilenav.y); 
         NOTIFY_UPDATE_PGNAV();
-        this->Refresh();
+        this->Refresh(); // draw select boarder on window
         return;
     }
 
-on_key_down_next:
+key_down_next:
     event.Skip();
 }
 
@@ -293,48 +366,9 @@ drop_file_failed:
 
 void TileWindow::OnUpdate(wxCommandEvent &event)
 {
-    // try decode and render at first
-    if(wxGetApp().m_tilesolver.DecodeOk())
-    {
-        wxGetApp().m_tilesolver.Render();
-    }
-
-    if(!wxGetApp().m_tilesolver.RenderOk())
-    {
-        m_view->m_bitmap = wxBitmap();
-        m_view->SetVirtualSize(0, 0);
-        goto update_next;
-    }
-    m_view->m_bitmap = wxGetApp().m_tilesolver.m_bitmap;
-
-    // check scale to resize image
-    if(g_tilestyle.reset_scale)
-    {
-        auto tilewindow_w = m_view->m_bitmap.GetSize().GetWidth();
-        auto configwindow_w =  wxGetApp().m_configwindow->GetSize().GetWidth();
-        wxGetApp().GetTopWindow()->SetSize(tilewindow_w + configwindow_w + 40, 
-            wxGetApp().GetTopWindow()->GetSize().GetHeight());
-        g_tilestyle.reset_scale = false;
-        m_view->m_scale = 1.f;
-    }
-    else
-    {
-        m_view->m_scale = g_tilestyle.scale;
-    }
-    m_view->SetVirtualSize(m_view->ScaleVal(m_view->m_bitmap.GetSize()));
-
-    // check tile style and render them
-    if(g_tilestyle.style & TILE_STYLE_AUTOROW)
-    {
-        m_view->AutoRow();
-    }
-    if(g_tilestyle.style & TILE_STYLE_BOARDER)
-    {
-        m_view->DrawBoarder();
-    }
-
-    // go to the target position
-    if(g_tilenav.scrollto)
+    m_view->PreRender();
+    m_view->DrawStyle();
+    if(g_tilenav.scrollto) // go to the target position
     {
         m_view->ScrollPosition(g_tilenav.x, g_tilenav.y);
         g_tilenav.scrollto = false;

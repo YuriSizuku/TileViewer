@@ -26,8 +26,8 @@ CTRL+O open file
 CTRL+L open log window
 CTRL+S save decoded tile image
 CTRL+B show border in each tile
-CTRL++ scale up
-CTRL+- scale down
+CTRL++|WHELLUP scale up (zoom in)
+CTRL+-|WHELLDOWN scale down (zoom out)
 CTRL+R reset scale and fit window to best size
 ```
 

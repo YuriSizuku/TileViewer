@@ -76,5 +76,5 @@ void TopFrame::OnUpdateStatus(wxCommandEvent &event)
     }
     auto scale = g_tilestyle.scale;
     SetStatusText(wxString::Format(
-        "%zu tiles | %dx%d image | x%.1f scale", ntile, imgw, imgh, scale), 2);
+        "%zu tiles | %dx%d image | x%.2f scale", ntile, imgw, imgh, scale), 2);
 }
