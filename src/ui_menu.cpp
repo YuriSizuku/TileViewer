@@ -103,6 +103,9 @@ void MainMenuBar::OnOpen(wxCommandEvent& WXUNUSED(event))
 
 menu_open_failed:
     wxMessageBox(wxString::Format("open %s failed !", inpath), "error", wxICON_ERROR);
+    reset_tilenav(&g_tilenav);
+    NOTIFY_UPDATE_TILENAV();
+    NOTIFY_UPDATE_TILES(); // notify all
 }
 
 void MainMenuBar::OnClose(wxCommandEvent& WXUNUSED(event))
@@ -140,15 +143,17 @@ void MainMenuBar::OnPlugin(wxCommandEvent& event)
 
     wxLogMessage("[MainMenuBar::OnPlugin] change plugin index to %i (%s)", 
         pluginidx, pluginfile.GetFullName());
-    if(wxGetApp().m_tilesolver.Decode(&g_tilecfg, pluginfile) < 0) goto menu_plugin_failed;
-    
+    if(wxGetApp().m_tilesolver.Decode(&g_tilecfg, pluginfile) < 0)  goto menu_plugin_failed;
     reset_tilenav(&g_tilenav);
     NOTIFY_UPDATE_TILENAV();
     NOTIFY_UPDATE_TILES(); // notify all
     return;
 
 menu_plugin_failed:
-     wxMessageBox(wxString::Format("plugin %s decode failed !", pluginfile.GetFullName()), "error", wxICON_ERROR);
+    wxMessageBox(wxString::Format("plugin %s decode failed !", pluginfile.GetFullName()), "error", wxICON_ERROR);
+    reset_tilenav(&g_tilenav);
+    NOTIFY_UPDATE_TILENAV();
+    NOTIFY_UPDATE_TILES(); // notify all
 }
 
 void MainMenuBar::OnStyle(wxCommandEvent& event)

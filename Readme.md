@@ -33,8 +33,8 @@ CTRL+-|WHELLDOWN scale down (zoom out)
 CTRL+R reset scale and fit window to best size
 ```
 
-![tile_test2](asset/picture/tile_test2.png)
-(example of view a bmp texture in rgba8888 format)
+![tile_test5](asset/picture/tile_test5.png)
+(example of view swizzle texture by narcissus psp, using lua plugin)
 
 ### (2) cmd
 
@@ -130,9 +130,10 @@ m2 --> c2
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/build_linux64/TileViewer",
-            "args": ["--inpath", "../asset/sample/it.bin",  "--width", "20", "--height", "18", "--bpp 2", "--nbytes 92"],
+            "args": ["--inpath", "sample/Nobara1.bmp",  "--width", "20", "--height", "18", "--bpp 2", "--nbytes 92", 
+                    "--plugin", "plugin//bmp.lua"],
             "stopAtEntry": false,
-            "cwd": "${workspaceRoot}/build_linux64",
+            "cwd": "${workspaceRoot}/asset/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",

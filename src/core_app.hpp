@@ -6,7 +6,7 @@
 #include <wx/filename.h>
 #include "core_type.h"
 
-#define APP_VERSION "v0.2"
+#define APP_VERSION "v0.2.1"
 #define MAX_PLUGIN  20
 
 extern struct tilecfg_t g_tilecfg;

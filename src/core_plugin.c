@@ -207,9 +207,9 @@ static int capi_set_tilestyle(lua_State* L)
     lua_pop(L, 1);
 
     lua_getfield(L, 1, "scale");
-    if(lua_isinteger(L, -1))
+    if(lua_isnumber(L, -1))
     {
-        g_tilestyle.scale = lua_tointeger(L, -1);
+        g_tilestyle.scale = lua_tonumber(L, -1);
     }
     lua_pop(L, 1);
     

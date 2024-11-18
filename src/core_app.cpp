@@ -2,8 +2,8 @@
  * implement the major methods for tile viewer
  *   developed by devseed
  * 
- *  dataflow: filebuf -(decode)-> tiles bytes -(render)-> 
- *            logicial bitmap -(scale)-> window bitmap
+ *  dataflow: ->tilepath -(open)-> filebuf -(decode)-> tiles bytes 
+ *            -(render)-> logicial bitmap -(scale)-> window bitmap
  */
 
 #include <map>
@@ -96,8 +96,14 @@ struct tile_decoder_t* TileSolver::LoadDecoder(wxFileName pluginfile)
         return nullptr;
     }
 
-    wxLogMessage("[TileSolver::LoadDecoder] %s msg: \n    %s", pluginfile.GetFullName(), decoder->msg);
-    
+    if(decoder->msg && decoder->msg[0])
+    {
+        wxLogMessage("[TileSolver::LoadDecoder] %s msg: \n    %s", pluginfile.GetFullName(), decoder->msg);
+    }
+    else
+    {
+        wxLogMessage("[TileSolver::LoadDecoder] %s", pluginfile.GetFullName());
+    }
     return decoder;
 }
 
@@ -186,7 +192,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     if(decoder->pre)
     {
         status = decoder->pre(context, rawdata, rawsize, &g_tilecfg);
-        if(decoder->msg)
+        if(decoder->msg && decoder->msg[0])
         {
             wxLogMessage("[TileSolver::Decode] decoder->pre msg: \n    %s", decoder->msg);
         }
@@ -248,7 +254,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
         }
         else
         {
-            if(decoder->msg)
+            if(decoder->msg && decoder->msg[0])
             {
                 wxLogMessage("[TileSolver::Decode] decoder->post msg: \n    %s", decoder->msg);
             }

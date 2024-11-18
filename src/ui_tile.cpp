@@ -237,7 +237,7 @@ void TileView::OnSize(wxSizeEvent& event)
 
 void TileView::OnMouseLeftDown(wxMouseEvent& event)
 {
-    if(!m_bitmap.IsOk()) return;
+    if(!m_bitmap.IsOk() || !wxGetApp().m_tilesolver.RenderOk()) return;
 
     auto clientpt = event.GetPosition();
     auto unscollpt = CalcUnscrolledPosition(clientpt);
@@ -361,6 +361,9 @@ void TileWindow::OnDropFile(wxDropFilesEvent& event)
     return;
 
 drop_file_failed:
+    reset_tilenav(&g_tilenav);
+    NOTIFY_UPDATE_TILENAV();
+    NOTIFY_UPDATE_TILES(); // notify all
     wxMessageBox(wxString::Format("open %s failed !", infile.GetFullPath()), "error", wxICON_ERROR);
 }
 
