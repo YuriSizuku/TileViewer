@@ -255,7 +255,7 @@ void TileView::OnMouseLeftDown(wxMouseEvent& event)
     sync_tilenav(&g_tilenav, &g_tilecfg);
     g_tilenav.offset = -1; // to get the left corner of x, y
     sync_tilenav(&g_tilenav, &g_tilecfg); 
-    NOTIFY_UPDATE_PGNAV();
+    NOTIFY_UPDATE_TILENAV();
     this->SetFocus();
     this->Refresh();
 }
@@ -327,7 +327,7 @@ void TileView::OnKeyDown(wxKeyEvent& event)
         g_tilenav.offset = -1;
         sync_tilenav(&g_tilenav, &g_tilecfg);
         ScrollPosition(g_tilenav.x, g_tilenav.y); 
-        NOTIFY_UPDATE_PGNAV();
+        NOTIFY_UPDATE_TILENAV();
         this->Refresh(); // draw select boarder on window
         return;
     }
@@ -356,7 +356,7 @@ void TileWindow::OnDropFile(wxDropFilesEvent& event)
     if(!wxGetApp().m_tilesolver.Decode(&g_tilecfg)) goto drop_file_failed;
     
     reset_tilenav(&g_tilenav);
-    NOTIFY_UPDATE_PGNAV();
+    NOTIFY_UPDATE_TILENAV();
     NOTIFY_UPDATE_TILES(); // notify all
     return;
 

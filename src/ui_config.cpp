@@ -11,10 +11,12 @@
 extern struct tilecfg_t g_tilecfg;
 extern struct tilenav_t g_tilenav;
 
-wxDEFINE_EVENT(EVENT_UPDATE_PGNAV, wxCommandEvent);
+wxDEFINE_EVENT(EVENT_UPDATE_TILECFG, wxCommandEvent);
+wxDEFINE_EVENT(EVENT_UPDATE_TILENAV, wxCommandEvent);
 wxBEGIN_EVENT_TABLE(ConfigWindow, wxWindow)
     EVT_PG_CHANGED(wxID_ANY, ConfigWindow::OnPropertyGridChanged)
-    EVT_COMMAND(wxID_ANY, EVENT_UPDATE_PGNAV, ConfigWindow::OnUpdatePgnav)
+    EVT_COMMAND(wxID_ANY, EVENT_UPDATE_TILECFG, ConfigWindow::OnUpdateTilecfg)
+    EVT_COMMAND(wxID_ANY, EVENT_UPDATE_TILENAV, ConfigWindow::OnUpdateTilenav)
 wxEND_EVENT_TABLE()
 
 void ConfigWindow::LoadTilecfg(struct tilecfg_t &cfg)
@@ -147,7 +149,7 @@ void ConfigWindow::OnPropertyGridChanged(wxPropertyGridEvent& event)
             sync_tilenav(&g_tilenav, &g_tilecfg);
         }
 
-        NOTIFY_UPDATE_PGNAV();
+        NOTIFY_UPDATE_TILENAV();
         g_tilenav.scrollto = true; 
         NOTIFY_UPDATE_TILES(); // notify tilenav
     }
@@ -155,7 +157,12 @@ void ConfigWindow::OnPropertyGridChanged(wxPropertyGridEvent& event)
         prop->GetParent()->GetName(), prop->GetName(), prop->GetValue().MakeString()));
 }
 
-void ConfigWindow::OnUpdatePgnav(wxCommandEvent &event)
+void ConfigWindow::OnUpdateTilecfg(wxCommandEvent &event)
+{
+    LoadTilecfg(g_tilecfg);
+}
+
+void ConfigWindow::OnUpdateTilenav(wxCommandEvent &event)
 {
     m_pg->SetPropertyValue("tilenav.index", (long)g_tilenav.index);
     m_pg->SetPropertyValue("tilenav.offset", (long)g_tilenav.offset);

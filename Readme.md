@@ -20,6 +20,8 @@ In addition, you can use it for data visulization tool as well.
 
 ### (1) gui
 
+It will automaticly search plugins in `./plugin` path. You can use these shortcut to control the view.  
+
 ```sh
 H|J|K|L cursor moving in tile view
 CTRL+O open file
@@ -59,7 +61,11 @@ command line example
 
 ```sh
 TileViewer --inpath ../asset/sample/it.bin --width 20 --height 18 --bpp 2 --nbytes 92 --outpath it.png
+TileViewer --inpath ../asset/sample/Nobara1.bmp --plugin ../asset/plugin/bmp.lua --outpath Nobara1.png
 ```
+
+![tile_test4](asset/picture/tile_test4.png)
+(example of using lua plugin to decode and scale scrolled view)
 
 ## Develop
 
@@ -147,7 +153,76 @@ m2 --> c2
 }
 ```
 
-### (2) Lua API
+### (2) C plugin
+
+Implement these function for C decoder plugin, see `src/core_decode.c` in detail
+
+``` C
+
+struct tile_decoder_t
+{
+    REQUIRED CB_decode_open open;
+    REQUIRED CB_decode_close close;
+    REQUIRED CB_decode_pixel decode;
+    OPTIONAL CB_decode_parse pre;
+    OPTIONAL CB_decode_parse post;
+    void* context;
+    const char *msg; // for store decoder failed msg
+};
+```
+
+### (3) Lua plugin
+
+Use `log` to print values in logwindow, implement `decode_pre`,  `decode_pixel` and `decode_post` to decode tiles;
+You can use capi functions as below, usually in `decode_pre` to reduce overhead. See `asset/plugin/` in detail.  
+
+Notice that the **lua index is start from 1** !
+
+``` lua
+-- c types declear
+---@class tilecfg_t
+---@field start integer
+---@field size integer
+---@field nrow integer
+---@field w integer
+---@field h integer
+---@field bpp integer
+---@field nbytes integer
+
+-- capis declear 
+log = log -- use log(...) to redirect to log window
+
+---@type fun() : tilecfg_t
+function get_tilecfg() return {} end -- capi
+
+---@type fun(tilecfg_t)
+function set_tilecfg(cfg) end -- capi
+
+---@type fun(): integer
+function get_rawsize() return 0 end -- capi
+
+-- get tiles bytes, usually used in decode_pre, and then use this to decode pixel
+---@type fun(offset:integer, size: integer): string
+function get_rawdata(offset, size) return "" end --capi
+
+-- c callbacks implement
+---@type fun() : boolean 
+function decode_pre() -- callback for pre process
+    -- implement your code here
+    return true
+end
+
+---@type fun( i: integer, x: integer, y: integer) : integer
+function decode_pixel(i, x, y) -- callback for decoding tile i, (x, y) position
+    -- implement your code here
+end
+
+---@type fun() : boolean 
+function decode_post() -- callback for post process
+    -- implement your code here
+    return true
+end
+```
 
 ## Build
 
@@ -248,7 +323,7 @@ export DOCKER_ARCH=aarch64 BUILD_DIR=build_linuxa64_docker BUILD_TYPE=MinSizeRel
 * Core
   * [x] decoder interface with different plugin (builtin, lua)
   * [x] built-in decoder, 2|4|8bpp, 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)
-  * [ ] extern lua decoder api implement
+  * [x] extern lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
   * [ ] multi thread decoding, rendering
 
 * UI

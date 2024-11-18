@@ -6,7 +6,7 @@
 #include <wx/filename.h>
 #include "core_type.h"
 
-#define APP_VERSION "v0.1"
+#define APP_VERSION "v0.2"
 #define MAX_PLUGIN  20
 
 extern struct tilecfg_t g_tilecfg;
@@ -17,7 +17,7 @@ class ConfigWindow;
 class TileSolver
 {
 public:
-    static struct tile_decoder_t *FindDecoder(wxFileName pluginfile);
+    static struct tile_decoder_t *LoadDecoder(wxFileName pluginfile);
 
 public: 
     TileSolver();
@@ -45,13 +45,8 @@ class MainApp : public wxApp
 {
 public:
     int SearchPlugins(wxString dirpath);
-    void ReloadTiles(bool fullreload=false, bool showerror=false);
-    
     bool Gui(wxString cmdstr = *wxEmptyString);
     bool Cli(wxString cmdstr = *wxEmptyString);
-    virtual bool OnInit() wxOVERRIDE;
-    virtual void OnInitCmdLine(wxCmdLineParser& parser) wxOVERRIDE;
-    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) wxOVERRIDE;
 
     // window
     TileWindow *m_tilewindow;
@@ -62,6 +57,12 @@ public:
     int m_pluginindex;
     wxVector<wxFileName> m_pluginfiles; 
     TileSolver m_tilesolver;
+    bool m_usgui;
+
+private:    
+    virtual bool OnInit() wxOVERRIDE;
+    virtual void OnInitCmdLine(wxCmdLineParser& parser) wxOVERRIDE;
+    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) wxOVERRIDE;
 };
 
 wxDECLARE_APP(MainApp);

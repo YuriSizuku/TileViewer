@@ -6,6 +6,7 @@
 #ifndef _CORE_VALUES_H
 #define _CORE_VALUES_H
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef  __cplusplus
 extern "C" {
@@ -57,6 +58,30 @@ struct tilecfg_t
         };
        struct tilefmt_t fmt;
     };
+};
+
+enum UI_TILE_STYLE
+{
+    TILE_STYLE_DEFAULT = 0,
+    TILE_STYLE_BOARDER = 1,
+    TILE_STYLE_AUTOROW = 2
+};
+
+// tile navagation
+struct tilenav_t
+{
+    int index; // current select position
+    int offset; // tile offset in file (include start)
+    int x, y; // tile start position
+    bool scrollto; // scroll to the target position
+};
+
+// tile render style
+struct tilestyle_t
+{
+    float scale; // tile scale
+    long style;
+    bool reset_scale; 
 };
 
 inline int calc_tile_nbytes(const struct tilefmt_t *fmt)

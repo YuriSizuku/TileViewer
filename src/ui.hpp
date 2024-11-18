@@ -21,47 +21,25 @@ enum UI_ID
     Menu_About = wxID_ABOUT
 };
 
-enum UI_TILE_STYLE
-{
-    TILE_STYLE_DEFAULT = 0,
-    TILE_STYLE_BOARDER = 1,
-    TILE_STYLE_AUTOROW = 2
-};
-
-// current tile
-struct tilenav_t
-{
-    int index; // current select position
-    int offset; // tile offset in file (include start)
-    int x, y; // tile start position
-    bool scrollto; // scroll to the target position
-};
-
-// tile render style
-struct tilestyle_t
-{
-    float scale; // tile scale
-    long style;
-    bool reset_scale; 
-};
-
 extern struct tilenav_t g_tilenav;
 extern struct tilestyle_t g_tilestyle;
 
 wxDECLARE_EVENT(EVENT_UPDATE_TILES, wxCommandEvent); // tilefmt, tilenav, tilestyle
 wxDECLARE_EVENT(EVENT_UPDATE_STATUS, wxCommandEvent); // infile, pluginfile, ntile, (imgw, imgh)
-wxDECLARE_EVENT(EVENT_UPDATE_PGNAV, wxCommandEvent); // tilenav
+wxDECLARE_EVENT(EVENT_UPDATE_TILECFG, wxCommandEvent); // tilecfg
+wxDECLARE_EVENT(EVENT_UPDATE_TILENAV, wxCommandEvent); // tilenav
 #define NOTIFY_UPDATE_TILES() wxPostEvent(wxGetApp().m_tilewindow, wxCommandEvent(EVENT_UPDATE_TILES))
 #define NOTIFY_UPDATE_STATUS() wxPostEvent(wxGetApp().GetTopWindow(), wxCommandEvent(EVENT_UPDATE_STATUS))
-#define NOTIFY_UPDATE_PGNAV() wxPostEvent(wxGetApp().m_configwindow, wxCommandEvent(EVENT_UPDATE_PGNAV))
+#define NOTIFY_UPDATE_TILECFG() wxPostEvent(wxGetApp().m_configwindow, wxCommandEvent(EVENT_UPDATE_TILECFG))
+#define NOTIFY_UPDATE_TILENAV() wxPostEvent(wxGetApp().m_configwindow, wxCommandEvent(EVENT_UPDATE_TILENAV))
 
 class TopFrame : public wxFrame
 {
 public:
     TopFrame();
-    void OnUpdateStatus(wxCommandEvent &event);
 
 private:
+    void OnUpdateStatus(wxCommandEvent &event);
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -69,6 +47,9 @@ class MainMenuBar : public wxMenuBar
 {
 public:
     MainMenuBar(wxFrame *parent);
+    
+private:
+    wxFrame *m_parent;
     void OnOpen(wxCommandEvent& event);
     void OnClose(wxCommandEvent& event);
     void OnSave(wxCommandEvent& event);
@@ -77,9 +58,6 @@ public:
     void OnStyle(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnLogcat(wxCommandEvent& event);
-    
-private:
-    wxFrame *m_parent;
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -90,12 +68,12 @@ public:
     void SaveTilecfg(struct tilecfg_t &cfg);
 
     ConfigWindow(wxWindow* parent);
-    void OnPropertyGridChanged(wxPropertyGridEvent& event);
-    void OnUpdatePgnav(wxCommandEvent& event);
-
     wxPropertyGrid* m_pg;
 
 private:
+    void OnPropertyGridChanged(wxPropertyGridEvent& event);
+    void OnUpdateTilecfg(wxCommandEvent& event);
+    void OnUpdateTilenav(wxCommandEvent& event);
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -112,12 +90,6 @@ public:
     bool ScrollPosition(int x, int y); // the pos in logical bitmap
 
     TileView(wxWindow *parent);
-    virtual void OnDraw(wxDC& dc) wxOVERRIDE; // blit logical bitmap to window
-    void OnMouseLeftDown(wxMouseEvent& event);
-    void OnMouseWheel(wxMouseEvent& event);
-    void OnKeyDown(wxKeyEvent& event);
-    void OnSize(wxSizeEvent& event);
-
     wxBitmap m_bitmap; // logical bitmap, dynamicly blit when OnDraw
     float m_scale = 1.f; // bitmap scale to window
 
@@ -128,6 +100,12 @@ private:
     bool DrawBoarder(); // draw boarders for every tiles on logical bitmap
     bool DrawStyle();  // draw all the tile styles
 
+    virtual void OnDraw(wxDC& dc) wxOVERRIDE; // blit logical bitmap to window
+    void OnMouseLeftDown(wxMouseEvent& event);
+    void OnMouseWheel(wxMouseEvent& event);
+    void OnKeyDown(wxKeyEvent& event);
+    void OnSize(wxSizeEvent& event);
+
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -135,12 +113,11 @@ class TileWindow: public wxPanel
 {
 public:
     TileWindow(wxWindow *parent);
-    void OnDropFile(wxDropFilesEvent& event);
-    void OnUpdate(wxCommandEvent &event);
-
     TileView* m_view;
 
 private:
+    void OnDropFile(wxDropFilesEvent& event);
+    void OnUpdate(wxCommandEvent &event);
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -186,7 +163,7 @@ sync_tile_disp_start:
         nav->y = (nav->index / nrow) * cfg->h;
     }
 
-    if(cfg->size > 0 && nav->offset + nbytes > cfg->size + cfg->start)
+    if(cfg->size > 0 && nbytes <= cfg->size && nav->offset + nbytes > cfg->size + cfg->start)
     {
         int n = cfg->size / nbytes;
         if(n <= 0) n = 1;

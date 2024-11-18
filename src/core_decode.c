@@ -8,7 +8,25 @@
 #include "core_type.h"
 #include "core_decode.h"
 
-bool pixel_offset_default(const struct tilepos_t *pos, const struct tilefmt_t *fmt, size_t *offset)
+static char s_msg[1024] = {0};
+
+struct tile_decoder_t g_decoder_default = {
+    .open = decode_open_default, .close = decode_close_default, .decode = decode_pixel_default, 
+    .pre = NULL, .post=NULL, .msg = s_msg
+};
+
+DECODE_STATUS decode_open_default(const char *name, void **context)
+{
+    return DECODE_OK;
+}
+
+DECODE_STATUS decode_close_default(void *context)
+{
+    return DECODE_OK;
+}
+
+bool decode_offset_default(void *context, 
+    const struct tilepos_t *pos, const struct tilefmt_t *fmt, size_t *offset)
 {
     // no safety check for pointer here
     int i = pos->i, x = pos->x, y = pos->y;
@@ -23,15 +41,16 @@ bool pixel_offset_default(const struct tilepos_t *pos, const struct tilefmt_t *f
     return true;
 }
 
-bool decode_pixel_default(const uint8_t* data, size_t datasize, 
+DECODE_STATUS decode_pixel_default(void *context,
+    const uint8_t* data, size_t datasize, 
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
     struct pixel_t *pixel, bool remain_index)
 {
     // find decode offset 
     uint8_t bpp = fmt->bpp;
     size_t offset = 0;
-    if(!pixel_offset_default(pos, fmt, &offset)) return false;
-    if(offset + bpp/8 >= datasize) return false;
+    if(!decode_offset_default(context, pos, fmt, &offset)) return DECODE_RANGERROR;
+    if(offset + bpp/8 >= datasize) return DECODE_RANGERROR;
 
     // try decode in different bpp
     if(bpp==32) // rgba8888
@@ -85,5 +104,5 @@ bool decode_pixel_default(const uint8_t* data, size_t datasize,
             pixel->a = 255;
         }
     }
-    return true;
+    return DECODE_OK;
 }
