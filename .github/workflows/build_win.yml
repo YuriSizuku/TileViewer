@@ -32,7 +32,7 @@ jobs:
         mkdir build
         export PATH=${MINGWSDK}/bin:$PATH
         export CC=${{ matrix.arch.prefix }}-w64-mingw32-clang
-        export WINRES=${{ matrix.arch.prefix }}-w64-mingw32-windres
+        export WINDRES=${{ matrix.arch.prefix }}-w64-mingw32-windres
         export BUILD_DIR=build
         export BUILD_TYPE=MinSizeRel
         bash script/build_mingw.sh

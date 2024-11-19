@@ -6,8 +6,7 @@
 #include <wx/wx.h>
 #include <wx/splitter.h>
 #include "ui.hpp"
-#include "core_app.hpp"
-#include "core_type.h"
+#include "core.hpp"
 
 wxDEFINE_EVENT(EVENT_UPDATE_STATUS, wxCommandEvent);
 

@@ -3,8 +3,9 @@
 
 #include <wx/wx.h>
 #include <wx/propgrid/propgrid.h>
-#include "core_app.hpp"
-#include "core_type.h"
+#include "core.hpp"
+
+#define MAX_PLUGIN  20
 
 enum UI_ID
 {

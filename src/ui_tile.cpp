@@ -8,7 +8,7 @@
 #include <wx/wx.h>
 #include <wx/dcbuffer.h>
 #include <wx/dcmemory.h>
-#include "core_decode.h"
+#include "core.hpp"
 #include "ui.hpp"
 
 extern struct tilecfg_t g_tilecfg;

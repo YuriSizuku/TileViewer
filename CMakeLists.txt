@@ -67,13 +67,14 @@ add_custom_command(
 # define tileviewer
 set(CMAKE_CXX_STANDARD 11)
 set(TILEVIEWER_CODE
+    src/core_app.cpp
+    src/core_solver.cpp
+    src/plugin_builtin.c
+    src/plugin_lua.c
     src/ui_top.cpp
     src/ui_menu.cpp
     src/ui_config.cpp
     src/ui_tile.cpp
-    src/core_app.cpp
-    src/core_decode.c
-    src/core_plugin.c
 )
 add_executable(${PROJECT_NAME}
     ${TILEVIEWER_CODE}

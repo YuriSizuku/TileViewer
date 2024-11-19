@@ -10,11 +10,11 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "YuriSizuku"
       VALUE "FileDescription", "A cross platform tool to view and analyze tiles or textures"
-      VALUE "FileVersion", "0.1"
+      VALUE "FileVersion", "0.3"
       VALUE "InternalName", "TileViewer"
       VALUE "OriginalFilename", "TileViewer.exe"
       VALUE "ProductName", "TileViewer"
-      VALUE "ProductVersion", "0.1"
+      VALUE "ProductVersion", "0.3"
     END
   END
   BLOCK "VarFileInfo"

@@ -7,25 +7,18 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
-#include "core_type.h"
-#include "core_decode.h"
-#include "core_plugin.h"
+#include "plugin.h"
 
 static char s_msg[4096] = {'\0'};
 extern struct tilecfg_t g_tilecfg;
 extern struct tilenav_t g_tilenav;
 extern struct tilestyle_t g_tilestyle;
 
-struct tile_decoder_t g_decoder_lua = {
-    .open = decode_open_lua, .close = decode_close_lua, .decode = decode_pixel_lua, 
-    .pre=decode_pre_lua, .post=decode_post_lua, .msg = s_msg, .context = NULL
-};
-
 static struct decode_context_t
 {
     lua_State *L;
-    const uint8_t *data;
-    size_t datasize;
+    const uint8_t *rawdata;
+    size_t rawsize;
 } s_decode_context = {NULL};
 
 static int capi_log(lua_State* L) 
@@ -226,7 +219,7 @@ static int capi_set_tilestyle(lua_State* L)
 // function get_rawsize()
 static int capi_get_rawsize(lua_State *L)
 {
-    lua_pushinteger(L, s_decode_context.datasize);
+    lua_pushinteger(L, s_decode_context.rawsize);
     return 1;
 }
 
@@ -244,15 +237,15 @@ static int capi_get_rawdata(lua_State *L)
         offset = lua_tointeger(L, 1);
     }
     
-    if(offset > s_decode_context.datasize)
+    if(offset > s_decode_context.rawsize)
     {
         lua_pushnil(L);
     }
     else
     {
-        if(offset + size > s_decode_context.datasize) size = s_decode_context.datasize - offset;
-        if(!size) size = s_decode_context.datasize;
-        lua_pushlstring(L, (const char *)s_decode_context.data + offset, size);
+        if(offset + size > s_decode_context.rawsize) size = s_decode_context.rawsize - offset;
+        if(!size) size = s_decode_context.rawsize;
+        lua_pushlstring(L, (const char *)s_decode_context.rawdata + offset, size);
     }
     return 1;
 }
@@ -269,11 +262,11 @@ static void register_capis(lua_State *L)
     lua_register(L, "get_rawdata", capi_get_rawdata);
 }
 
-DECODE_STATUS decode_open_lua(const char *luastr, void **context)
+PLUGIN_STATUS decode_open_lua(const char *luastr, void **context)
 {
     s_msg[0] = '\0';
     lua_State* L = luaL_newstate();
-    if(!L) return DECODE_FAIL;
+    if(!L) return STATUS_FAIL;
     luaL_openlibs(L);
 
     // load the script
@@ -284,7 +277,7 @@ DECODE_STATUS decode_open_lua(const char *luastr, void **context)
         sprintf(s_msg, "[decode_open_lua]  %s", text);
         luaL_error(L, "Error: %s\n", text);
         lua_close(L);
-        return DECODE_SCRIPTERROR;
+        return STATUS_SCRIPTERROR;
     }
 
     register_capis(L);
@@ -292,23 +285,23 @@ DECODE_STATUS decode_open_lua(const char *luastr, void **context)
     *context = &s_decode_context;
 
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return DECODE_OK;
+    return STATUS_OK;
 }
 
-DECODE_STATUS decode_close_lua(void *context)
+PLUGIN_STATUS decode_close_lua(void *context)
 {
     s_msg[0] = '\0';
     struct decode_context_t* _context = (struct decode_context_t*)context;
     lua_close(_context->L);
-    _context->data = NULL;
-    _context->datasize = 0;
+    _context->rawdata = NULL;
+    _context->rawsize = 0;
 
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return DECODE_OK;
+    return STATUS_OK;
 }
 
 // function decode_pixel(i, x, y)
-DECODE_STATUS decode_pixel_lua(void *context, 
+PLUGIN_STATUS decode_pixel_lua(void *context, 
     const uint8_t* data, size_t datasize,
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
     struct pixel_t *pixel, bool remain_index)
@@ -319,7 +312,7 @@ DECODE_STATUS decode_pixel_lua(void *context,
     if(!lua_isfunction(L, -1))
     {
         lua_pop(L, 1);
-        return DECODE_CALLBACKERROR;
+        return STATUS_CALLBACKERROR;
     }
     lua_pushinteger(L, pos->i);
     lua_pushinteger(L, pos->x);
@@ -329,36 +322,36 @@ DECODE_STATUS decode_pixel_lua(void *context,
     lua_pop(L, 1); // should pop after lua_tointeger
     
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return DECODE_OK;
+    return STATUS_OK;
 }
 
-DECODE_STATUS decode_pre_lua(void *context, 
-    const uint8_t* data, size_t datasize, struct tilecfg_t *cfg)
+PLUGIN_STATUS decode_pre_lua(void *context, 
+    const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
 {
     s_msg[0] = '\0';
     struct decode_context_t* _context = (struct decode_context_t*) context;
-    _context->data = data;
-    _context->datasize = datasize;
+    _context->rawdata = rawdata;
+    _context->rawsize = rawsize;
 
-    if(cfg->start > datasize) return DECODE_RANGERROR; 
+    if(cfg->start > rawsize) return STATUS_RANGERROR; 
     
     lua_State *L = _context->L;
     lua_getglobal(L, "decode_pre");
     if(!lua_isfunction(L, -1))
     {
         lua_pop(L, 1);
-        return DECODE_CALLBACKERROR;
+        return STATUS_CALLBACKERROR;
     }
     lua_call(L, 0, 1);
     bool res = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return res ? DECODE_OK : DECODE_FAIL;
+    return res ? STATUS_OK : STATUS_FAIL;
 }
 
-DECODE_STATUS decode_post_lua(void *context, 
-    const uint8_t* data, size_t datasize, struct tilecfg_t *cfg)
+PLUGIN_STATUS decode_post_lua(void *context, 
+    const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
 {
     s_msg[0] = '\0';
     lua_State *L = ((struct decode_context_t*) context)->L;
@@ -366,12 +359,17 @@ DECODE_STATUS decode_post_lua(void *context,
     if(!lua_isfunction(L, -1))
     {
         lua_pop(L, 1);
-        return DECODE_CALLBACKERROR;
+        return STATUS_CALLBACKERROR;
     }
     lua_call(L, 0, 1);
     bool res = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return res ? DECODE_OK : DECODE_FAIL;
+    return res ? STATUS_OK : STATUS_FAIL;
 }
+
+struct tile_decoder_t g_decoder_lua = {
+    .open = decode_open_lua, .close = decode_close_lua, .decode = decode_pixel_lua, 
+    .pre=decode_pre_lua, .post=decode_post_lua, .msg = s_msg, .context = NULL
+};

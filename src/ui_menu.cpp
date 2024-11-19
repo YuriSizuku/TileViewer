@@ -7,6 +7,7 @@
 #include <wx/filefn.h>
 #include <wx/filename.h>
 #include "ui.hpp"
+#include "core.hpp"
 
 wxBEGIN_EVENT_TABLE(MainMenuBar, wxWindow)
     EVT_MENU(Menu_Open, MainMenuBar::OnOpen)
@@ -42,14 +43,14 @@ MainMenuBar::MainMenuBar(wxFrame *parent)
         if(file.Exists()) // check if this is extern plugin
         {
             pluginMenu->AppendRadioItem(Menu_Plugin + i,  
-                "[script] " + file.GetFullName(), // can not use the same id
-                "Use Lua plugin to decode tiles");
+                "[extern] " + file.GetFullName(), // can not use the same id
+                "Use extern plugin to decode tiles");
         }
         else
         {
             pluginMenu->AppendRadioItem(Menu_Plugin + i, 
                 "[builtin] " + file.GetFullName(), 
-                "Use C plugin to decode tiles");
+                "Use builtin plugin to decode tiles");
         }
 
         i++;
@@ -60,7 +61,7 @@ MainMenuBar::MainMenuBar(wxFrame *parent)
             break;
         }
     }
-    fileMenu->AppendSubMenu(pluginMenu, "Decode Plugin", "custom decode plugins are in ./plugin");
+    fileMenu->AppendSubMenu(pluginMenu, "Plugin", "custom decode plugins are in ./plugin");
    
     // view menu
     wxMenu *viewMenu = new wxMenu;
@@ -80,6 +81,7 @@ MainMenuBar::MainMenuBar(wxFrame *parent)
     this->Append(fileMenu, "File");
     this->Append(viewMenu, "View");
     this->Append(helpMenu, "Help");
+    pluginMenu->Check(Menu_Plugin + wxGetApp().m_pluginindex, true);
     this->FindItem(Menu_ShowBoader)->Check(g_tilestyle.style & TILE_STYLE_BOARDER);
     this->FindItem(Menu_AutoRow)->Check(g_tilestyle.style & TILE_STYLE_AUTOROW);
 }

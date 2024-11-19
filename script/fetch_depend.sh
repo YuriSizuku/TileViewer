@@ -23,3 +23,16 @@ function fetch_wxwidgets()
         7z x depend/$WXWIDGETS_NAME.7z -o$WXWIDGETS_DIR
     fi
 }
+
+function fetch_stb()
+{
+    STB_VERSION=lastest
+    STB_NAME=stb-${STB_VERSION}
+    STB_DIR=depend/$STB_NAME
+    if ! [ -d "$STB_DIR" ]; then
+        echo "## fetch_stb $STB_NAME"
+        curl -fsSL https://github.com/nothings/stb/archive/refs/heads/master.zip -o depend/$STB_NAME.7z
+        7z x depend/$STB_NAME.7z
+        mv -f stb-master $STB_DIR
+    fi
+}

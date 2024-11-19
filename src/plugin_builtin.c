@@ -1,28 +1,22 @@
 /**
- * implement for tile decoding
+ * implement for builtin plugin
  *   developed by devseed
  */
 
 #include <stdio.h>
 #include <string.h>
-#include "core_type.h"
-#include "core_decode.h"
+#include "plugin.h"
 
-static char s_msg[1024] = {0};
+static char s_msg[4096] = {0};
 
-struct tile_decoder_t g_decoder_default = {
-    .open = decode_open_default, .close = decode_close_default, .decode = decode_pixel_default, 
-    .pre = NULL, .post=NULL, .msg = s_msg
-};
-
-DECODE_STATUS decode_open_default(const char *name, void **context)
+PLUGIN_STATUS decode_open_default(const char *name, void **context)
 {
-    return DECODE_OK;
+    return STATUS_OK;
 }
 
-DECODE_STATUS decode_close_default(void *context)
+PLUGIN_STATUS decode_close_default(void *context)
 {
-    return DECODE_OK;
+    return STATUS_OK;
 }
 
 bool decode_offset_default(void *context, 
@@ -41,7 +35,7 @@ bool decode_offset_default(void *context,
     return true;
 }
 
-DECODE_STATUS decode_pixel_default(void *context,
+PLUGIN_STATUS decode_pixel_default(void *context,
     const uint8_t* data, size_t datasize, 
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
     struct pixel_t *pixel, bool remain_index)
@@ -49,8 +43,8 @@ DECODE_STATUS decode_pixel_default(void *context,
     // find decode offset 
     uint8_t bpp = fmt->bpp;
     size_t offset = 0;
-    if(!decode_offset_default(context, pos, fmt, &offset)) return DECODE_RANGERROR;
-    if(offset + bpp/8 >= datasize) return DECODE_RANGERROR;
+    if(!decode_offset_default(context, pos, fmt, &offset)) return STATUS_RANGERROR;
+    if(offset + bpp/8 >= datasize) return STATUS_RANGERROR;
 
     // try decode in different bpp
     if(bpp==32) // rgba8888
@@ -104,5 +98,11 @@ DECODE_STATUS decode_pixel_default(void *context,
             pixel->a = 255;
         }
     }
-    return DECODE_OK;
+    return STATUS_OK;
 }
+
+struct tile_decoder_t g_decoder_default = {
+    .open = decode_open_default, .close = decode_close_default, 
+    .decode = decode_pixel_default, 
+    .pre = NULL, .post=NULL, .msg = s_msg
+};

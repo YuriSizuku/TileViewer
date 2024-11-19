@@ -4,10 +4,10 @@
 #include <wx/wx.h>
 #include <wx/bitmap.h>
 #include <wx/filename.h>
-#include "core_type.h"
+#include <wx/dynlib.h>
+#include "plugin.h"
 
-#define APP_VERSION "v0.2.1"
-#define MAX_PLUGIN  20
+#define APP_VERSION "v0.3"
 
 extern struct tilecfg_t g_tilecfg;
 
@@ -16,11 +16,10 @@ class ConfigWindow;
 
 class TileSolver
 {
-public:
-    static struct tile_decoder_t *LoadDecoder(wxFileName pluginfile);
 
 public: 
     TileSolver();
+    bool LoadDecoder(wxFileName pluginfile);
     size_t Open(wxFileName infile = wxFileName()); // file -> m_filebuf
     int Decode(struct tilecfg_t *cfg, wxFileName pluginfile = wxFileName()); // m_filebuf -> m_tiles
     bool Render(); // m_tiles -> m_bitmap
@@ -31,6 +30,8 @@ public:
     bool RenderOk();
 
     struct tilecfg_t m_tilecfg;
+    struct tile_decoder_t *m_decoder;
+    wxDynamicLibrary m_cmodule;
     wxFileName m_infile, m_outfile;
     wxFileName m_pluginfile;
     wxMemoryBuffer m_filebuf;

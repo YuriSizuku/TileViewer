@@ -2,7 +2,7 @@
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/yurisizuku/TileViewer?color=green&label=TileViewer) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_win.yml?label=win(x86|x64)&style=flat-square) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_linux.yml?label=linux(x86|x64|arm32|arm64)&style=flat-square)
 
-☘️ A cross platform tool to visulize and analyze texture (usually used for console game font) by tiles.  It is inspired by `Crystal Tile 2`, and more flexible with custom lua script (for more complex situation, such as swizzle) and command line support.  
+☘️ A cross platform tool to visulize and analyze texture (usually used for console game font) by tiles.  It is inspired by `Crystal Tile 2`, and more flexible with custom lua script or C plugin (for more complex situation, such as swizzle) and command line support.  
 
 Also, it supports for droping file, save decoded image and show cursor moving in tiles.  Futhermore, the window is flexible for changing size and support for zooming in and out with converting the client coordinate to logical coordinate.  
 
@@ -156,20 +156,29 @@ m2 --> c2
 
 ### (2) C plugin
 
-Implement these function for C decoder plugin, see `src/core_decode.c` in detail
+Implement these function for C decoder plugin, see `src/plugin.h` in detail.  
 
 ``` C
 
 struct tile_decoder_t
 {
-    REQUIRED CB_decode_open open;
-    REQUIRED CB_decode_close close;
-    REQUIRED CB_decode_pixel decode;
-    OPTIONAL CB_decode_parse pre;
-    OPTIONAL CB_decode_parse post;
-    void* context;
-    const char *msg; // for store decoder failed msg
+    REQUIRED CB_decode_open open; // open the decoder when loading decoder
+    REQUIRED CB_decode_close close; // close the decoder when changing decoder
+    REQUIRED CB_decode_pixel decode; // decode each pixel (fill the (i, x, y) pixel)
+    OPTIONAL CB_decode_parse pre; // before decoding whole tiles (usually make some tmp values here)
+    OPTIONAL CB_decode_parse post; // after decoding whole tiles(usually clean some tmp values here)
+    void* context; // opaque pointer for decoder context, user defined struct
+    const char *msg; // for passing log informations to log window
 };
+```
+
+For example, to built plugin `asset/png.c`
+
+``` sh
+mkdir -p build_mingw64/plugin
+. script/fetch_depend.sh
+fetch_stb
+gcc -g -Idepend/stb-lastest -Isrc -fPIC -shared asset/plugin/plugin_png.c  -o build_mingw64/plugin/png.dll
 ```
 
 ### (3) Lua plugin
@@ -322,9 +331,10 @@ export DOCKER_ARCH=aarch64 BUILD_DIR=build_linuxa64_docker BUILD_TYPE=MinSizeRel
 ## Roadmap
 
 * Core
-  * [x] decoder interface with different plugin (builtin, lua)
-  * [x] built-in decoder, 2|4|8bpp, 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)
-  * [x] extern lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
+  * [x] decoder interface with different plugin (builtin, lua, C)
+  * [x] plugin built-in decoder, 2|4|8bpp, 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888) ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
+  * [x] plugin lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
+  * [x] plugin C decoder (dll, implement) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
   * [ ] multi thread decoding, rendering
 
 * UI
@@ -332,7 +342,7 @@ export DOCKER_ARCH=aarch64 BUILD_DIR=build_linuxa64_docker BUILD_TYPE=MinSizeRel
   * [x] inital layout, left config view, right tile view, top menu, bottom status
   * [x] select and render tiles in real time when format changes
   * [x] scale render tile images (zoom in/out) ([v0.1.5](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
-  * [ ] color palette load, save editor  
+  * [ ] color palette load, save editor  (partly sovled by plugin)
 
 * Build
   * [x] redirect log message to log window

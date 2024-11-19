@@ -5,8 +5,7 @@
 
 #include <wx/wx.h>
 #include "ui.hpp"
-#include "core_app.hpp"
-#include "core_type.h"
+#include "core.hpp"
 
 extern struct tilecfg_t g_tilecfg;
 extern struct tilenav_t g_tilenav;
