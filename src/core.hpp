@@ -7,7 +7,7 @@
 #include <wx/dynlib.h>
 #include "plugin.h"
 
-#define APP_VERSION "v0.3"
+#define APP_VERSION "v0.3.1"
 
 extern struct tilecfg_t g_tilecfg;
 
@@ -58,7 +58,7 @@ public:
     int m_pluginindex;
     wxVector<wxFileName> m_pluginfiles; 
     TileSolver m_tilesolver;
-    bool m_usgui;
+    bool m_usegui;
 
 private:    
     virtual bool OnInit() wxOVERRIDE;

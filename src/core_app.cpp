@@ -55,8 +55,8 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser& parser)
     
     wxString val;
     long num;
-    if(parser.FoundSwitch("nogui") == wxCMD_SWITCH_ON) m_usgui = false;
-    else m_usgui = true;
+    if(parser.FoundSwitch("nogui") == wxCMD_SWITCH_ON) m_usegui = false;
+    else m_usegui = true;
     if(parser.Found("inpath", &val)) m_tilesolver.m_infile = val;
     if(parser.Found("outpath", &val)) m_tilesolver.m_outfile = val;
     if(parser.Found("plugin", &val)) m_tilesolver.m_pluginfile = val;
@@ -82,20 +82,23 @@ int MainApp::SearchPlugins(wxString dirpath)
         m_pluginfiles.push_back(it.first);
     }
 
-    // add lua plugins
-    wxString path = wxFindFirstFile(dirpath + "/*.lua");
-    while (!path.empty())
+    if(wxDirExists(dirpath))
     {
-        m_pluginfiles.push_back(path);
-        path = wxFindNextFile();
-    }
+        // add lua plugins
+        wxString path = wxFindFirstFile(dirpath + "/*.lua");
+        while (!path.empty())
+        {
+            m_pluginfiles.push_back(path);
+            path = wxFindNextFile();
+        }
 
-    // add C plugins
-    path = wxFindFirstFile(dirpath + "/*" + wxDynamicLibrary::GetDllExt());
-    while (!path.empty())
-    {
-        m_pluginfiles.push_back(path);
-        path = wxFindNextFile();
+        // add C plugins
+        path = wxFindFirstFile(dirpath + "/*" + wxDynamicLibrary::GetDllExt());
+        while (!path.empty())
+        {
+            m_pluginfiles.push_back(path);
+            path = wxFindNextFile();
+        }
     }
 
     // add cmd selected plugin
@@ -180,7 +183,7 @@ bool MainApp::Cli(wxString cmdline)
             m_tilesolver.m_infile.GetFullPath(), ntiles, w, h));
         return false;
     }
-    if(m_tilesolver.Save())
+    if(!m_tilesolver.Save())
     {
         wxLogError(wxString::Format("[MainApp::Cli] save %s failed", 
             m_tilesolver.m_outfile.GetFullPath()));
@@ -206,12 +209,13 @@ bool MainApp::OnInit()
         m_tilesolver.m_pluginfile = m_pluginfiles[0];
     
     bool res = true;
-    if(!m_usgui) res = Cli(cmdline);
+    if(!m_usegui) res = Cli(cmdline);
     else res = Gui(cmdline);
     if(!res)
     {
         wxLogError("[MainApp::OnInit] init failed!");
     }
+    if(!m_usegui)  Exit();
 
     return res;
 }

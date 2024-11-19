@@ -109,7 +109,7 @@ int TileView::AutoRow()
     g_tilecfg.nrow = (uint16_t)nrow;
     wxGetApp().m_configwindow->m_pg->SetPropertyValue("tilecfg.nrow", (long)nrow);
     m_bitmap = wxGetApp().m_tilesolver.m_bitmap;
-    SetVirtualSize(m_bitmap.GetSize());
+    SetVirtualSize(ScaleVal(m_bitmap.GetSize()));
 
     // sync the nav values
     g_tilenav.offset = -1;

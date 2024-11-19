@@ -160,7 +160,6 @@ size_t TileSolver::Open(wxFileName infile)
 int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
 {
     m_bitmap = wxBitmap(); // disable render bitmap while decode
-    if(!m_filebuf.GetDataLen()) return -1;
     if(cfg) m_tilecfg = *cfg;
     if(pluginfile.GetFullPath().Length() > 0) 
     {
@@ -187,6 +186,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     }
 
     // pre processing
+    if(!m_filebuf.GetDataLen()) return 0;
     PLUGIN_STATUS status;
     size_t start = m_tilecfg.start;
     auto context = decoder->context;
@@ -202,7 +202,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
         if(status == STATUS_FAIL)
         {
             wxLogError("[TileSolver::Decode] decoder->pre %s", decode_status_str(status));
-            if(wxGetApp().m_usgui) wxMessageBox(decoder->msg, "decode error", wxICON_ERROR);
+            if(wxGetApp().m_usegui) wxMessageBox(decoder->msg, "decode error", wxICON_ERROR);
             m_tiles.clear();
             return -1;
         }
@@ -265,9 +265,12 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     }
 
     // the plugin might change that, show update views
-    sync_tilenav(&g_tilenav, &g_tilecfg);
-    NOTIFY_UPDATE_TILENAV();
-    NOTIFY_UPDATE_TILECFG();
+    if(wxGetApp().m_usegui)
+    {
+        sync_tilenav(&g_tilenav, &g_tilecfg);
+        NOTIFY_UPDATE_TILENAV();
+        NOTIFY_UPDATE_TILECFG();
+    }
     size_t nbytes = calc_tile_nbytes(&m_tilecfg.fmt);
     wxLogMessage(wxString::Format(
         "[TileSolver::Decode] decode %zu tiles with %zu bytes, in %llu ms", 
