@@ -5,12 +5,14 @@
 
 #include <wx/wx.h>
 #include <wx/splitter.h>
+#include <wx/fswatcher.h>
 #include "ui.hpp"
 #include "core.hpp"
 
 wxDEFINE_EVENT(EVENT_UPDATE_STATUS, wxCommandEvent);
 
 wxBEGIN_EVENT_TABLE(TopFrame, wxFrame)
+EVT_FSWATCHER(wxID_ANY, TopFrame::OnFileSystemEvent)
 EVT_COMMAND(wxID_ANY, EVENT_UPDATE_STATUS, TopFrame::OnUpdateStatus)
 wxEND_EVENT_TABLE()
 
@@ -22,11 +24,17 @@ TopFrame::TopFrame() :
             wxDefaultPosition, wxSize(960, 720)) 
 {
     // load resource
+    wxString pluginDir = "./plugin";
 #ifdef _WIN32
     auto icon = wxICON(IDI_ICON1);
     SetIcon(icon); // load build-in icon
 #endif
-    wxGetApp().SearchPlugins("./plugin"); // find decode plugins
+    wxGetApp().SearchPlugins(pluginDir); // find decode plugins
+    
+    // file watcher
+    auto *filewatcher = new wxFileSystemWatcher();
+    filewatcher->SetOwner(this);
+    filewatcher->AddTree(pluginDir);
 
     // main view
     auto topSizer = new wxBoxSizer(wxVERTICAL);
@@ -57,6 +65,17 @@ TopFrame::TopFrame() :
     CreateStatusBar(3);
     SetStatusText("TileViewer " APP_VERSION);
     NOTIFY_UPDATE_STATUS();
+}
+
+void TopFrame::OnFileSystemEvent(wxFileSystemWatcherEvent &event)
+{
+    int type = event.GetChangeType();
+    if(type==wxFSW_EVENT_MODIFY)
+    {
+        wxGetApp().m_tilesolver.Decode(&g_tilecfg, wxGetApp().m_tilesolver.m_pluginfile);
+        wxGetApp().m_tilesolver.Render();
+        NOTIFY_UPDATE_TILES();
+    }
 }
 
 void TopFrame::OnUpdateStatus(wxCommandEvent &event)

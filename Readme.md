@@ -18,25 +18,7 @@ In addition, you can use it for data visulization tool as well.
 
 ## Usage
 
-### (1) gui
-
-It will automaticly search plugins in `./plugin` path. You can use these shortcut to control the view.  
-
-```sh
-H|J|K|L cursor moving in tile view
-CTRL+O open file
-CTRL+L open log window
-CTRL+S save decoded tile image
-CTRL+B show border in each tile
-CTRL++|WHELLUP scale up (zoom in)
-CTRL+-|WHELLDOWN scale down (zoom out)
-CTRL+R reset scale and fit window to best size
-```
-
-![tile_test5](asset/picture/tile_test5.png)
-(example of view swizzle texture by narcissus psp, using lua plugin)
-
-### (2) cmd
+### (1) cmd
 
 ```sh
 Usage: TileViewer [-n] [-i <str>] [-o <str>] [-p <str>] 
@@ -61,7 +43,25 @@ command line example
 
 ```sh
 TileViewer --inpath ../asset/sample/it.bin --width 20 --height 18 --bpp 2 --nbytes 92 --outpath it.png
-TileViewer --inpath ../asset/sample/Nobara1.bmp --plugin ../asset/plugin/bmp.lua --outpath Nobara1.png
+TileViewer --inpath ../asset/sample/c005.spc.dec --plugin ../asset/plugin/narcissus_lbg_psp.lua --outpath c005.spc.png
+```
+
+![tile_test5](asset/picture/tile_test5.png)
+(example of view swizzle texture by narcissus psp, using lua plugin)
+
+### (2) gui
+
+It will automaticly search plugins in `./plugin` path. You can use these shortcut to control the view.  
+
+```sh
+H|J|K|L cursor moving in tile view
+CTRL+O open file
+CTRL+L open log window
+CTRL+S save decoded tile image
+CTRL+B show border in each tile
+CTRL++|WHELLUP scale up (zoom in)
+CTRL+-|WHELLDOWN scale down (zoom out)
+CTRL+R reset scale and fit window to best size
 ```
 
 ![tile_test4](asset/picture/tile_test4.png)
@@ -131,7 +131,7 @@ m2 --> c2
             "request": "launch",
             "program": "${workspaceRoot}/build_linux64/TileViewer",
             "args": ["--inpath", "sample/Nobara1.bmp",  "--width", "20", "--height", "18", "--bpp 2", "--nbytes 92", 
-                    "--plugin", "plugin//bmp.lua"],
+                    "--plugin", "plugin/util_bmp.lua"],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}/asset/",
             "environment": [],
@@ -178,7 +178,7 @@ For example, to built plugin `asset/png.c`
 mkdir -p build_mingw64/plugin
 . script/fetch_depend.sh
 fetch_stb
-gcc -g -Idepend/stb-lastest -Isrc -fPIC -shared asset/plugin/plugin_png.c  -o build_mingw64/plugin/png.dll
+gcc -g -Idepend/stb-lastest -Isrc -fPIC -shared asset/plugin/util_png.c  -o build_mingw64/plugin/png.dll
 ```
 
 ### (3) Lua plugin
@@ -336,6 +336,7 @@ export DOCKER_ARCH=aarch64 BUILD_DIR=build_linuxa64_docker BUILD_TYPE=MinSizeRel
   * [x] plugin lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
   * [x] plugin C decoder (dll, implement) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
   * [ ] multi thread decoding, rendering
+  * [x] automaticaly reload the plugin when it changes ([v0.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.2))
 
 * UI
   * [x] start up with hello world, cmake structure for the project  

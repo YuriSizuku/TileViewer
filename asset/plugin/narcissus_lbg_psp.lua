@@ -3,7 +3,7 @@
 ---@diagnostic disable : duplicate-doc-field
 
 version = "v0.1"
-description = "[lua::init] lua plugin to decode narcissus psp swizzle texture"
+description = "[lua::init] lua plugin to decode narcissus psp swizzle texture3"
 
 -- c types declear
 ---@class tilecfg_t

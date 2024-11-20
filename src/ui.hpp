@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 #include <wx/propgrid/propgrid.h>
+#include <wx/fswatcher.h>
 #include "core.hpp"
 
 #define MAX_PLUGIN  20
@@ -40,6 +41,7 @@ public:
     TopFrame();
 
 private:
+    void OnFileSystemEvent(wxFileSystemWatcherEvent &event);
     void OnUpdateStatus(wxCommandEvent &event);
     wxDECLARE_EVENT_TABLE();
 };

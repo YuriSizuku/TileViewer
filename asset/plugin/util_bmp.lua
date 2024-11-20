@@ -3,7 +3,7 @@
 ---@diagnostic disable : duplicate-doc-field
 
 version = "v0.1"
-description = "[lua::init] lua plugin to decode bmp format"
+description = "[lua::init] lua plugin to decode bmp format2"
 
 -- c types declear
 ---@class tilecfg_t

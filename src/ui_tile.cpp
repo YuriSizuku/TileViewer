@@ -76,19 +76,26 @@ bool TileView::ScrollPosition(int x, int y)
 bool TileView::PreRender()
 {
     // try decode and render at first
-    if(wxGetApp().m_tilesolver.DecodeOk())
-    {
-        wxGetApp().m_tilesolver.Render();
-    }
-
     if(!wxGetApp().m_tilesolver.RenderOk())
     {
-        m_bitmap = wxBitmap();
-        SetVirtualSize(0, 0);
-        return false;
+        if(wxGetApp().m_tilesolver.DecodeOk())
+        {
+            wxGetApp().m_tilesolver.Render();
+        }
+        else
+        {
+            goto prerender_failed;
+        }
     }
+
+    if(!wxGetApp().m_tilesolver.RenderOk()) goto prerender_failed;
     m_bitmap = wxGetApp().m_tilesolver.m_bitmap;
     return true;
+
+prerender_failed:
+    m_bitmap = wxBitmap();
+    SetVirtualSize(0, 0);
+    return false;
 }
 
 int TileView::AutoRow()
@@ -354,6 +361,7 @@ void TileWindow::OnDropFile(wxDropFilesEvent& event)
     wxGetApp().m_tilesolver.Close();
     if(!wxGetApp().m_tilesolver.Open(infile)) goto drop_file_failed;
     if(!wxGetApp().m_tilesolver.Decode(&g_tilecfg)) goto drop_file_failed;
+    if(!wxGetApp().m_tilesolver.Render()) goto drop_file_failed;
     
     reset_tilenav(&g_tilenav);
     NOTIFY_UPDATE_TILENAV();

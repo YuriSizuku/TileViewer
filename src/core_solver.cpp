@@ -166,10 +166,6 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
         m_pluginfile = pluginfile; // force reload a new plugin
         if(m_decoder) 
         {
-            if(m_decoder->msg && m_decoder->msg[0])
-            {
-                wxLogMessage("[TileSolver::LoadDecoder] %s msg: \n    %s", pluginfile.GetFullName(), m_decoder->msg);
-            }
             m_decoder->close(m_decoder->context);
         }
         m_decoder = nullptr;
@@ -345,10 +341,10 @@ bool TileSolver::Save(wxFileName outfile)
 
 bool TileSolver::Close()
 {
-    m_filebuf.Clear();
-    m_tiles.clear();
-    m_bitmap = wxBitmap();
-    m_infile.Clear();
+    m_infile.Clear(); // inpath
+    m_filebuf.Clear(); // inbuf
+    m_tiles.clear(); // decode 
+    m_bitmap = wxBitmap(); // render
     if(m_decoder)
     {
         m_decoder->close(m_decoder->context);
