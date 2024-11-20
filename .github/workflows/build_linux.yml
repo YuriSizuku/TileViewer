@@ -31,8 +31,11 @@ jobs:
     
     - name: prepare release
       run: |
-        mv build/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
-        readelf -h TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
+        readelf -h build/TileViewer
+        readelf -a build/TileViewer | grep NEEDED
+        if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
+          mv build/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
+        fi
       
     - name: create release
       uses: ncipollo/release-action@v1
@@ -63,15 +66,18 @@ jobs:
     - name: build ${{ matrix.arch.suffix }}
       run: |        
         export DOCKER_ARCH=${{ matrix.arch.prefix }}
-        export BUILD_DIR=${{ matrix.arch.cache }}
+        export BUILD_DIR=${{ matrix.arch.cache }} # this can not change, as the docker cache is here
         export BUILD_TYPE=MinSizeRel
         export USE_BUILDX=1
         bash script/build_docker.sh
     
     - name: prepare release
       run: |
-        mv ${{ matrix.arch.cache }}/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
-        readelf -h TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
+        readelf -h ${{ matrix.arch.cache }}/TileViewer
+        readelf -a ${{ matrix.arch.cache }}/TileViewer | grep NEEDED
+        if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
+          mv ${{ matrix.arch.cache }}/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
+        fi
       
     - name: create release
       uses: ncipollo/release-action@v1

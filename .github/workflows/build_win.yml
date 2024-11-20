@@ -39,7 +39,9 @@ jobs:
     
     - name: prepare release
       run: |
-        mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_win.exe
+        if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
+          mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_win.exe
+        fi
       
     - name: create release
       uses: ncipollo/release-action@v1

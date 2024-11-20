@@ -59,12 +59,10 @@ set(INGORED_WARNINGS  "-Wno-unused-command-line-argument -Wno-deprecated-declara
 )
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${INGORED_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${INGORED_WARNINGS}")
-
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 else()
     add_subdirectory(${WXWIDGETS_CODE_DIR})
 endif()
-
 
 # define wxwidgets xrc
 set(wxrc $<TARGET_FILE:wxrc>)
@@ -121,10 +119,10 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 else()
     target_link_libraries(${PROJECT_NAME} PRIVATE
         lua
+        wx::core
         wx::base
         wx::propgrid
     )
 endif()
-
 
 config_platform(${PROJECT_NAME})
