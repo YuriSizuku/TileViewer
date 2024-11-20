@@ -328,6 +328,28 @@ export DOCKER_ARCH=armhf BUILD_DIR=build_linuxa32_docker BUILD_TYPE=MinSizeRel U
 export DOCKER_ARCH=aarch64 BUILD_DIR=build_linuxa64_docker BUILD_TYPE=MinSizeRel USE_BUILDX=1 && bash script/build_docker.sh
 ```
 
+### (3) macOS
+``` sh
+
+# install Xcode Command Line Tools
+xcode-select --install
+
+# install Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# install dependency using Homebrew
+brew install wxwidgets
+brew install p7zip
+brew install gtk+3
+brew install cmake
+
+git clone https://github.com/YuriSizuku/TileViewer.git
+cd TileViewer
+chmod +x script/*.sh
+./script/build_macos.sh
+
+```
+
 ## Roadmap
 
 * Core
