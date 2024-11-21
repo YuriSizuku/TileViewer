@@ -21,6 +21,22 @@ function(config_platform TARGET_NAME)
             -static-libgcc
         )
     elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin") # macOS
+        # Find wxWidgets
+        find_package(wxWidgets REQUIRED COMPONENTS core base)
+        # Include wxWidgets' settings (e.g., include directories, flags)
+        include(${wxWidgets_USE_FILE})
+        # Find wxWidgets
+        find_package(wxWidgets REQUIRED COMPONENTS core base propgrid)
+
+        if(wxWidgets_FOUND)
+            include(${wxWidgets_USE_FILE})
+            target_link_libraries(${PROJECT_NAME} PRIVATE ${wxWidgets_LIBRARIES})
+        else()
+            message(FATAL_ERROR "wxWidgets not found!")
+        endif()
+        target_link_libraries(${PROJECT_NAME} PRIVATE
+            lua
+        )
         target_compile_definitions(${TARGET_NAME} PRIVATE
             -D__APPLE__
         )
@@ -59,8 +75,7 @@ set(INGORED_WARNINGS  "-Wno-unused-command-line-argument -Wno-deprecated-declara
 )
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${INGORED_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${INGORED_WARNINGS}")
-if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-else()
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin")
     add_subdirectory(${WXWIDGETS_CODE_DIR})
 endif()
 
@@ -98,30 +113,14 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${LUA_CODE_DIR}/src
 )
-
-if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    # Find wxWidgets
-    find_package(wxWidgets REQUIRED COMPONENTS core base)
-    # Include wxWidgets' settings (e.g., include directories, flags)
-    include(${wxWidgets_USE_FILE})
-    # Find wxWidgets
-    find_package(wxWidgets REQUIRED COMPONENTS core base propgrid)
-
-    if(wxWidgets_FOUND)
-        include(${wxWidgets_USE_FILE})
-        target_link_libraries(${PROJECT_NAME} PRIVATE ${wxWidgets_LIBRARIES})
-    else()
-        message(FATAL_ERROR "wxWidgets not found!")
-    endif()
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-        lua
-    )
-else()
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    # find_package(OpenMP REQUIRED)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         lua
         wx::core
         wx::base
         wx::propgrid
+        # OpenMP::OpenMP_CXX
     )
 endif()
 

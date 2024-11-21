@@ -161,6 +161,11 @@ struct tile_decoder_t
     const char *msg; // for passing log informations to log window
 };
 
+/**
+ * if not export decoder struct, use get_decoder function instead
+ */
+typedef struct tile_decoder_t* (*API_get_decoder)();
+
 #ifdef  __cplusplus
 }
 #endif

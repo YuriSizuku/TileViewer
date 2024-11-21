@@ -32,9 +32,12 @@ TopFrame::TopFrame() :
     wxGetApp().SearchPlugins(pluginDir); // find decode plugins
     
     // file watcher
-    auto *filewatcher = new wxFileSystemWatcher();
-    filewatcher->SetOwner(this);
-    filewatcher->AddTree(pluginDir);
+    if(wxFileExists(pluginDir))
+    {
+        auto *filewatcher = new wxFileSystemWatcher();
+        filewatcher->SetOwner(this);
+        filewatcher->AddTree(pluginDir);
+    }
 
     // main view
     auto topSizer = new wxBoxSizer(wxVERTICAL);

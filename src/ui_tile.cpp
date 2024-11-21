@@ -28,27 +28,27 @@ EVT_DROP_FILES(TileWindow::OnDropFile)
 EVT_COMMAND(wxID_ANY, EVENT_UPDATE_TILES, TileWindow::OnUpdate)
 wxEND_EVENT_TABLE()
 
-int TileView::ScaleVal(int val)
+int TileView::ScaleV(int val)
 {
-    return (int)((float)val * m_scale);
+    return (int)round((float)val * m_scale);
 }
 
-wxSize TileView::ScaleVal(const wxSize &val)
+wxSize TileView::ScaleV(const wxSize &val)
 {
-    return wxSize(ScaleVal(val.GetWidth()), ScaleVal(val.GetHeight()));
+    return wxSize(ScaleV(val.GetWidth()), ScaleV(val.GetHeight()));
 }
 
-int TileView::DeScaleVal(int val)
+int TileView::DeScaleV(int val)
 {
-    return (int)((float)val / m_scale);
+    return (int)round((float)val / m_scale);
 }
 
-wxSize TileView::DeScaleVal(const wxSize &val)
+wxSize TileView::DeScaleV(const wxSize &val)
 {
-    return wxSize(DeScaleVal(val.GetWidth()), DeScaleVal(val.GetHeight()));
+    return wxSize(DeScaleV(val.GetWidth()), DeScaleV(val.GetHeight()));
 }
 
-bool TileView::ScrollPosition(int x, int y)
+bool TileView::ScrollPos(int x, int y)
 {
     int scrollxu, scrollyu; 
     GetScrollPixelsPerUnit(&scrollxu, &scrollyu);
@@ -62,13 +62,13 @@ bool TileView::ScrollPosition(int x, int y)
     int endy = starty + clienth;
     
     // check if the target pixel is in current client window
-    if(ScaleVal(x) >= startx && ScaleVal(x) <= endx && ScaleVal(y) >= starty && ScaleVal(y) <= endy)
+    if(ScaleV(x) >= startx && ScaleV(x) <= endx && ScaleV(y) >= starty && ScaleV(y) <= endy)
     {
         return false;
     }
     else
     {
-        Scroll(ScaleVal(x) / scrollxu, ScaleVal(y) / scrollyu);
+        Scroll(ScaleV(x) / scrollxu, ScaleV(y) / scrollyu);
         return true;
     }
 }
@@ -98,14 +98,14 @@ prerender_failed:
     return false;
 }
 
-int TileView::AutoRow()
+int TileView::PreRow()
 {
     if(!wxGetApp().m_tilesolver.DecodeOk()) return -1;
     
     // calculate the auto nrow
     auto windoww = GetClientSize().GetWidth();
     auto tilew = g_tilecfg.w;
-    auto nrow = DeScaleVal(windoww) / tilew;
+    auto nrow = DeScaleV(windoww) / tilew;
     if(!nrow) nrow++;
     
     // resize nrow and prepare image
@@ -116,7 +116,7 @@ int TileView::AutoRow()
     g_tilecfg.nrow = (uint16_t)nrow;
     wxGetApp().m_configwindow->m_pg->SetPropertyValue("tilecfg.nrow", (long)nrow);
     m_bitmap = wxGetApp().m_tilesolver.m_bitmap;
-    SetVirtualSize(ScaleVal(m_bitmap.GetSize()));
+    SetVirtualSize(ScaleV(m_bitmap.GetSize()));
 
     // sync the nav values
     g_tilenav.offset = -1;
@@ -125,7 +125,7 @@ int TileView::AutoRow()
     return nrow;
 }
 
-bool TileView::DrawBoarder()
+bool TileView::PreBoarder()
 {
     if(!m_bitmap.IsOk()) return false;
     wxMemoryDC memdc(m_bitmap);
@@ -145,7 +145,7 @@ bool TileView::DrawBoarder()
     return true;
 }
 
-bool TileView::DrawStyle()
+bool TileView::PreStyle()
 {
     if(!m_bitmap.IsOk()) return false;
     
@@ -165,14 +165,14 @@ bool TileView::DrawStyle()
     }
 
     // check tile style and render them
-    SetVirtualSize(ScaleVal(m_bitmap.GetSize()));
+    SetVirtualSize(ScaleV(m_bitmap.GetSize()));
     if(g_tilestyle.style & TILE_STYLE_AUTOROW)
     {
-        AutoRow();
+        PreRow();
     }
     if(g_tilestyle.style & TILE_STYLE_BOARDER)
     {
-        DrawBoarder();
+        PreBoarder();
     }
 
     return true;
@@ -180,22 +180,22 @@ bool TileView::DrawStyle()
 
 TileView::TileView(wxWindow *parent)
     : wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
-            wxBORDER_NONE | wxHSCROLL | wxVSCROLL)
+            wxBORDER_NONE | wxHSCROLL | wxVSCROLL | wxRETAINED)
 {
-    this->SetScrollbars(20, 20, 35, 20);
-    this->SetBackgroundColour(*wxLIGHT_GREY);
-    // this->SetBackgroundStyle(wxBG_STYLE_PAINT); // use this to prevent automatic erase
+    SetScrollbars(20, 20, 35, 20);
+    SetBackgroundColour(*wxLIGHT_GREY);
+    // SetBackgroundStyle(wxBG_STYLE_PAINT); // use this to prevent automatic erase
 }
 
 void TileView::OnDraw(wxDC& dc)
 {
     int scrollxu, scrollyu; 
-    int scrollx = this->GetScrollPos(wxHORIZONTAL);
-    int scrolly = this->GetScrollPos(wxVERTICAL);
-    this->GetScrollPixelsPerUnit(&scrollxu, &scrollyu);
+    int scrollx = GetScrollPos(wxHORIZONTAL);
+    int scrolly = GetScrollPos(wxVERTICAL);
+    GetScrollPixelsPerUnit(&scrollxu, &scrollyu);
     if(!m_bitmap.IsOk())
     {
-        this->SetVirtualSize(0, 0);
+        SetVirtualSize(0, 0);
         return;
     }
 
@@ -203,20 +203,27 @@ void TileView::OnDraw(wxDC& dc)
     wxMemoryDC memdc(m_bitmap);
     int logicw = memdc.GetSize().GetWidth();
     int logich = memdc.GetSize().GetHeight();
-    int logicx = DeScaleVal(scrollx*scrollxu);
-    int logicy = DeScaleVal(scrolly*scrollyu);
+    int logicx = DeScaleV(scrollx*scrollxu);
+    int logicy = DeScaleV(scrolly*scrollyu);
     int clientw = dc.GetSize().GetWidth();
     int clienth = dc.GetSize().GetHeight();
-    if(logicx + DeScaleVal(clientw) > logicw) clientw = ScaleVal(logicw - logicx);
-    if(logicy + DeScaleVal(clienth) > logich) clienth = ScaleVal(logich - logicy);
-    if(fabs(m_scale - 1.f) < 0.01)
+    if(fabs(m_scale - 1.f) < 0.001)
     {
+        clientw = wxMin<int>(clientw, ScaleV(logicw - logicx));
+        clienth = wxMin<int>(clienth, ScaleV(logich - logicy));
         dc.Blit(logicx, logicy, clientw, clienth, &memdc, logicx, logicy);
     }
     else
     {
-        dc.StretchBlit(ScaleVal(logicx), ScaleVal(logicy), clientw, clienth, &memdc, 
-            logicx, logicy, DeScaleVal(clientw), DeScaleVal(clienth));
+        // blit only the window area can reduce blinking, but may cause a lit bit shift
+        // slightly blit larger than the window, to prevent update remain problem (sometimes not work)
+        int extend_len = 200; 
+        logicx = wxMax<int>(logicx - extend_len, 0);
+        logicy = wxMax<int>(logicy - extend_len, 0);
+        clientw = wxMin<int>(clientw + ScaleV(extend_len), ScaleV(logicw - logicx));
+        clienth = wxMin<int>(clienth + ScaleV(extend_len), ScaleV(logich - logicy));
+        dc.StretchBlit(ScaleV(logicx), ScaleV(logicy), clientw, clienth, &memdc, 
+            logicx, logicy, DeScaleV(clientw), DeScaleV(clienth));
     }
     
     wxLogInfo(wxString::Format(
@@ -226,8 +233,9 @@ void TileView::OnDraw(wxDC& dc)
     // draw select box
     dc.SetPen(*wxGREEN_PEN);
     dc.SetBrush(wxBrush(*wxGREEN, wxTRANSPARENT));
-    dc.DrawRectangle(ScaleVal(g_tilenav.x), ScaleVal(g_tilenav.y), 
-        ScaleVal(g_tilecfg.w), ScaleVal(g_tilecfg.h));
+    dc.DrawRectangle(
+        ScaleV(g_tilenav.x), ScaleV(g_tilenav.y), 
+        ScaleV(g_tilecfg.w), ScaleV(g_tilecfg.h));
 }
 
 void TileView::OnSize(wxSizeEvent& event)
@@ -237,8 +245,8 @@ void TileView::OnSize(wxSizeEvent& event)
     
     if(g_tilestyle.style & TILE_STYLE_AUTOROW)
     {
-        DrawStyle();
-        this->Refresh();
+        PreStyle();
+        Refresh();
     }
 }
 
@@ -254,8 +262,8 @@ void TileView::OnMouseLeftDown(wxMouseEvent& event)
     // send to config window for click tile
     int imgw = wxGetApp().m_tilesolver.m_bitmap.GetWidth();
     int imgh = wxGetApp().m_tilesolver.m_bitmap.GetHeight();
-    int x = wxMin<int>(DeScaleVal(unscollpt.x), imgw - g_tilecfg.w);
-    int y = wxMin<int>(DeScaleVal(unscollpt.y), imgh - g_tilecfg.h);
+    int x = wxMin<int>(DeScaleV(unscollpt.x), imgw - g_tilecfg.w);
+    int y = wxMin<int>(DeScaleV(unscollpt.y), imgh - g_tilecfg.h);
     g_tilenav.index = -1;
     g_tilenav.offset = -1;
     g_tilenav.x = x; g_tilenav.y = y;
@@ -263,8 +271,8 @@ void TileView::OnMouseLeftDown(wxMouseEvent& event)
     g_tilenav.offset = -1; // to get the left corner of x, y
     sync_tilenav(&g_tilenav, &g_tilecfg); 
     NOTIFY_UPDATE_TILENAV();
-    this->SetFocus();
-    this->Refresh();
+    SetFocus();
+    Refresh();
 }
 
 void TileView::OnMouseWheel(wxMouseEvent& event)
@@ -283,9 +291,9 @@ void TileView::OnMouseWheel(wxMouseEvent& event)
         else g_tilestyle.scale += 0.25;
         g_tilestyle.scale = wxMin<float>(g_tilestyle.scale, 4.f);
     }
-    DrawStyle();
+    PreStyle();
     NOTIFY_UPDATE_STATUS(); 
-    this->Refresh();
+    Refresh();
 
 mouse_wheel_next:
     event.Skip();
@@ -333,9 +341,9 @@ void TileView::OnKeyDown(wxKeyEvent& event)
         g_tilenav.index = index;
         g_tilenav.offset = -1;
         sync_tilenav(&g_tilenav, &g_tilecfg);
-        ScrollPosition(g_tilenav.x, g_tilenav.y); 
+        ScrollPos(g_tilenav.x, g_tilenav.y); 
         NOTIFY_UPDATE_TILENAV();
-        this->Refresh(); // draw select boarder on window
+        Refresh(); // draw select boarder on window
         return;
     }
 
@@ -346,12 +354,12 @@ key_down_next:
 TileWindow::TileWindow(wxWindow *parent) 
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
 {
-    this->DragAcceptFiles(true);
+    DragAcceptFiles(true);
     auto sizer = new wxBoxSizer(wxVERTICAL);
     auto view = new TileView(this);
     m_view = view;
     sizer->Add(view, 1, wxEXPAND, 0);
-    this->SetSizer(sizer);
+    SetSizer(sizer);
 }
 
 void TileWindow::OnDropFile(wxDropFilesEvent& event)
@@ -378,10 +386,10 @@ drop_file_failed:
 void TileWindow::OnUpdate(wxCommandEvent &event)
 {
     m_view->PreRender();
-    m_view->DrawStyle();
+    m_view->PreStyle();
     if(g_tilenav.scrollto) // go to the target position
     {
-        m_view->ScrollPosition(g_tilenav.x, g_tilenav.y);
+        m_view->ScrollPos(g_tilenav.x, g_tilenav.y);
         g_tilenav.scrollto = false;
     }
 

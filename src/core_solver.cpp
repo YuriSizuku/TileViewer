@@ -6,6 +6,7 @@
  *            -(render)-> logicial bitmap -(scale)-> window bitmap
  */
 
+// #include <omp.h>
 #include <map>
 #include <wx/wx.h>
 #include <wx/bitmap.h>
@@ -66,11 +67,19 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
             wxLogError("[TileSolver::LoadDecoder] cmodule %s, open file failed", filepath);
             return false;
        }
-       decoder = (struct tile_decoder_t*)m_cmodule.GetSymbol("decoder");
+       decoder = (struct tile_decoder_t*)m_cmodule.GetSymbol("decoder"); // try find decoder struct
+       if(!decoder) // try to find function get_decoder
+       {
+            auto get_decoder = (API_get_decoder)m_cmodule.GetSymbol("get_decoder");
+            if(get_decoder)
+            {
+                decoder = get_decoder();
+            }
+       }
        if(!decoder)
        {
             m_cmodule.Unload();
-            wxLogError("[TileSolver::LoadDecoder] cmodule %s, can not get decoder struct", filepath);
+            wxLogError("[TileSolver::LoadDecoder] cmodule %s, can not find decoder", filepath);
             return false;
        }
     }
@@ -108,6 +117,8 @@ size_t TileSolver::PrepareTilebuf()
     size_t start = m_tilecfg.start;
     size_t datasize = m_tilecfg.size - start;
     size_t nbytes = calc_tile_nbytes(&m_tilecfg.fmt);
+    
+    // check datasize avilable
     if(!datasize) 
     {
         if(m_filebuf.GetDataLen() - start < 0)
@@ -122,16 +133,17 @@ size_t TileSolver::PrepareTilebuf()
     {
         datasize = wxMin<size_t, size_t>(datasize, m_filebuf.GetDataLen());
     }
+
+    // prepares tiles
     int ntile = datasize / nbytes;
     if(ntile <= 0) ntile = 1; // prevent data less than nbytes
+    m_tiles.clear();
     for(int i=0; i < ntile; i++)
     {
         auto tile = wxImage(m_tilecfg.w, m_tilecfg.h);
         tile.InitAlpha();
-        if(i >= m_tiles.size()) m_tiles.push_back(tile);
-        else m_tiles[i] = tile;
+        m_tiles.push_back(tile);
     }
-    m_tiles.erase(m_tiles.begin() + ntile, m_tiles.end());
     return datasize;
 }
 
@@ -188,6 +200,8 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     auto context = decoder->context;
     auto rawdata = (uint8_t*)m_filebuf.GetData();
     auto rawsize = m_filebuf.GetDataLen();
+
+    auto time_start = wxDateTime::UNow();
     if(decoder->pre)
     {
         status = decoder->pre(context, rawdata, rawsize, &g_tilecfg);
@@ -207,32 +221,29 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     
     // decoding
     auto datasize  = PrepareTilebuf();
-    auto time_start = wxDateTime::UNow();
     size_t ntile = m_tiles.size();
     if(datasize) 
     {
-        struct tilepos_t pos;
-        struct pixel_t pixel;
         for(int i=0; i< ntile; i++)
         {
             auto& tile = m_tiles[i];
+            uint8_t *rgbdata = tile.GetData();
+            uint8_t *adata = tile.GetAlpha();
             for(int y=0; y < m_tilecfg.h; y++)
             {
                 for(int x=0; x < m_tilecfg.w; x++)
                 {
-                    pos = {i, x, y};
-                    status = decoder->decode(context, 
+                    struct tilepos_t pos = {i, x, y};
+                    struct pixel_t pixel = {0};
+                    status = decoder->decode(context, // lua function might not be in omp parallel
                         rawdata + start, datasize, &pos, &m_tilecfg.fmt, &pixel, false);
                     if(!PLUGIN_SUCCESS(status))
                     {
-                        // disable this for performance
-                        // wxLogWarning(wxString::Format(
-                        //     "TileSolver::Decode] decode failed at (%d, %d, %d)", 
-                        //     pos.i, pos.x, pos.y));
                         continue;
                     }
-                    tile.SetRGB(pos.x, pos.y, pixel.r, pixel.g, pixel.b);
-                    tile.SetAlpha(pos.x, pos.y, pixel.a);
+                    auto pixeli = y * m_tilecfg.w  + x;
+                    memcpy(rgbdata + pixeli*3, &pixel, 3);
+                    adata[pixeli] = pixel.a; // alpah is seperate channel
                 }
             }
         }
@@ -241,7 +252,6 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     {
         wxLogWarning("[TileSolver::Decode] datasize is 0");
     }
-    auto time_end = wxDateTime::UNow();
     
     // post processing
     if(decoder->post)
@@ -259,6 +269,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
             }
         }
     }
+    auto time_end = wxDateTime::UNow();
 
     // the plugin might change that, show update views
     if(wxGetApp().m_usegui)
@@ -306,7 +317,9 @@ bool TileSolver::Render()
         return false;
     }
     bitmap.UseAlpha();
+
     wxMemoryDC dstdc(bitmap);
+    // #pragma omp parallel for, this might cause sementation fault after ? 
     for(int i=0; i < m_tiles.size(); i++)
     {
         int x = (i % nrow) * tilew;

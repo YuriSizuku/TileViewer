@@ -178,7 +178,7 @@ For example, to built plugin `asset/png.c`
 mkdir -p build_mingw64/plugin
 . script/fetch_depend.sh
 fetch_stb
-gcc -g -Idepend/stb-lastest -Isrc -fPIC -shared asset/plugin/util_png.c  -o build_mingw64/plugin/png.dll
+gcc -g -Idepend/stb-lastest -Isrc -fPIC -shared asset/plugin/util_png.c -fvisibility=hidden -o build_mingw64/plugin/util_png.dll
 ```
 
 ### (3) Lua plugin
@@ -358,7 +358,6 @@ chmod +x script/*.sh
   * [x] plugin built-in decoder, 2|4|8bpp, 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888) ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
   * [x] plugin lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
   * [x] plugin C decoder (dll, implement) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
-  * [ ] multi thread decoding, rendering
   * [x] automaticaly reload the plugin when it changes ([v0.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.2))
 
 * UI
@@ -375,6 +374,7 @@ chmod +x script/*.sh
   * [x] llvm-mingw compile (x86, x64) ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))
   * [x] linux compile (x86, x64) ([v0.1.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
   * [x] linux cross compile by docker (arm32, arm64) ([v0.1.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
+  * [x] mac local compile (contributed by [TomJinW](https://github.com/TomJinW))
 
 ## Issues
 

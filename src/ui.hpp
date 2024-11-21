@@ -85,23 +85,23 @@ class TileView: public wxScrolledWindow
 {
 public:
     // scale logic pos -> client pos
-    int ScaleVal(int val);
-    wxSize ScaleVal(const wxSize &val);
+    int ScaleV(int val);
+    wxSize ScaleV(const wxSize &val);
     // descale client pos -> logic pos
-    int DeScaleVal(int val);
-    wxSize DeScaleVal(const wxSize &val);
-    bool ScrollPosition(int x, int y); // the pos in logical bitmap
+    int DeScaleV(int val);
+    wxSize DeScaleV(const wxSize &val);
+    bool ScrollPos(int x, int y); // the pos in logical bitmap
 
     TileView(wxWindow *parent);
-    wxBitmap m_bitmap; // logical bitmap, dynamicly blit when OnDraw
+    wxBitmap m_bitmap; // logical bitmap, as double frame buffer, dynamicly blit when OnDraw
     float m_scale = 1.f; // bitmap scale to window
 
 private:
     friend class TileWindow;
     bool PreRender(); // try to get logical bitmap pre render
-    int AutoRow(); // auto set nrow to fit the window on logical bitmap
-    bool DrawBoarder(); // draw boarders for every tiles on logical bitmap
-    bool DrawStyle();  // draw all the tile styles
+    int PreRow(); // auto set nrow to fit the window on logical bitmap
+    bool PreBoarder(); // draw boarders for every tiles on logical bitmap
+    bool PreStyle();  // draw all the tile styles
 
     virtual void OnDraw(wxDC& dc) wxOVERRIDE; // blit logical bitmap to window
     void OnMouseLeftDown(wxMouseEvent& event);
