@@ -51,7 +51,7 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
         }
         wxString luastr;
         f.ReadAll(&luastr);
-        auto status = decoder->open(luastr.c_str().AsChar(), &decoder->context);
+        status = decoder->open(luastr.c_str().AsChar(), &decoder->context);
         if(!PLUGIN_SUCCESS(status)) 
         {
             wxLogError("[TileSolver::LoadDecoder] lua %s, decoder->open failed, msg: \n    %s", filepath, decoder->msg);
@@ -60,28 +60,34 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
     }
     else if ("." + pluginfile.GetExt() == wxDynamicLibrary::GetDllExt()) // load c module
     {
-       auto filepath = pluginfile.GetFullPath();
-       if(m_cmodule.IsLoaded()) m_cmodule.Unload();
-       if(!m_cmodule.Load(pluginfile.GetFullPath()))
-       {
+        auto filepath = pluginfile.GetFullPath();
+        if(m_cmodule.IsLoaded()) m_cmodule.Unload();
+        if(!m_cmodule.Load(pluginfile.GetFullPath()))
+        {
             wxLogError("[TileSolver::LoadDecoder] cmodule %s, open file failed", filepath);
             return false;
-       }
-       decoder = (struct tile_decoder_t*)m_cmodule.GetSymbol("decoder"); // try find decoder struct
-       if(!decoder) // try to find function get_decoder
-       {
+        }
+        decoder = (struct tile_decoder_t*)m_cmodule.GetSymbol("decoder"); // try find decoder struct
+        if(!decoder) // try to find function get_decoder
+        {
             auto get_decoder = (API_get_decoder)m_cmodule.GetSymbol("get_decoder");
             if(get_decoder)
             {
                 decoder = get_decoder();
             }
-       }
-       if(!decoder)
-       {
+        }
+        if(!decoder)
+        {
             m_cmodule.Unload();
             wxLogError("[TileSolver::LoadDecoder] cmodule %s, can not find decoder", filepath);
             return false;
-       }
+        }
+        status = decoder->open(m_pluginfile.GetFullName().c_str().AsChar(), &decoder->context);
+        if(!PLUGIN_SUCCESS(status)) 
+        {
+            wxLogError("[TileSolver::LoadDecoder] lua %s, decoder->open failed, msg: \n    %s", filepath, decoder->msg);
+            return false;
+        }
     }
     if (!decoder) 
     {
