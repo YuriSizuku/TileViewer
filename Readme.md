@@ -178,7 +178,7 @@ For example, to built plugin `asset/png.c`
 mkdir -p build_mingw64/plugin
 . script/fetch_depend.sh
 fetch_stb
-gcc -g -Idepend/stb-lastest -Isrc -fPIC -shared asset/plugin/util_png.c -fvisibility=hidden -o build_mingw64/plugin/util_png.dll
+gcc -g -Idepend/stb-lastest -Isrc -fPIC -fvisibility=hidden -static-libgcc -shared asset/plugin/util_png.c -o build_mingw64/plugin/util_png.dll
 ```
 
 ### (3) Lua plugin
@@ -274,6 +274,9 @@ sh -c "export CC=i686-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw32 BUILD_TYP
 
 # linux  mingw x64 debug
 export CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres BUILD_DIR=build_mingw64 && bash script/build_mingw.sh
+
+# linux mingw x86 release
+export CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres BUILD_DIR=build_mingw32 && BUILD_TYPE=MinSizeRel && bash script/build_mingw.sh
 ```
 
 ### (2) Linux
@@ -354,6 +357,8 @@ chmod +x script/*.sh
 ## Roadmap
 
 * Core
+  * [x] redirect log message to log window
+  * [x] implement command lines  
   * [x] decoder interface with different plugin (builtin, lua, C)
   * [x] plugin built-in decoder, 2|4|8bpp, 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888) ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
   * [x] plugin lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
@@ -368,12 +373,11 @@ chmod +x script/*.sh
   * [ ] color palette load, save editor  (partly sovled by plugin)
 
 * Build
-  * [x] redirect log message to log window
-  * [x] implement command lines  
   * [x] use github action to auto build ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))
   * [x] llvm-mingw compile (x86, x64) ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))
   * [x] linux compile (x86, x64) ([v0.1.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
   * [x] linux cross compile by docker (arm32, arm64) ([v0.1.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
+  * [x] windows xp support (by i686-w64-mingw32-gcc, llvm-mingw not worked, because of tls ? ) ([v0.3.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.2))
   * [x] mac local compile (contributed by [TomJinW](https://github.com/TomJinW))
 
 ## Issues

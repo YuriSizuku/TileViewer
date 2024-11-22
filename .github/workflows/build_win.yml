@@ -10,7 +10,7 @@ env:
   MINGWSDK: /opt/mingwsdk
 
 jobs:
-  build_mingw:
+  build_llvmmingw:
     strategy:
       matrix: 
         arch: [{prefix: i686, suffix: x86}, {prefix: x86_64, suffix: x64}]
@@ -21,7 +21,7 @@ jobs:
 
     - name: init enviroment
       run: |
-        sudo apt-get -y install p7zip-full git make cmake
+        sudo apt-get -y -qq install p7zip-full git make cmake
         curl -fsSL https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64.tar.xz -o /tmp/llvm-mingw.tar.xz
         tar xf /tmp/llvm-mingw.tar.xz -C /tmp
         _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64 
@@ -32,6 +32,46 @@ jobs:
         mkdir build
         export PATH=${MINGWSDK}/bin:$PATH
         export CC=${{ matrix.arch.prefix }}-w64-mingw32-clang
+        export WINDRES=${{ matrix.arch.prefix }}-w64-mingw32-windres
+        export BUILD_DIR=build
+        export BUILD_TYPE=MinSizeRel
+        bash script/build_mingw.sh
+    
+    - name: prepare release
+      run: |
+        if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
+          mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_win.exe
+        fi
+      
+    - name: create release
+      uses: ncipollo/release-action@v1
+      if: github.event_name == 'push'
+      with:
+        artifacts: "TileViewer_*.exe"
+        allowUpdates: "true"
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+  build_mingw:
+    strategy:
+      matrix: 
+        arch: [{prefix: i686, suffix: x86_xp}]
+
+    runs-on: ubuntu-22.04 # 24.04 gcc-13 might not worked ? 
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: init enviroment
+      run: |
+        sudo apt-get -y -qq install p7zip-full git make cmake
+        sudo apt-get -y -qq install mingw-w64
+        ${{ matrix.arch.prefix }}-w64-mingw32-gcc --version
+
+    - name: build ${{ matrix.arch.suffix }}
+      run: |
+        mkdir build
+        export PATH=${MINGWSDK}/bin:$PATH
+        export CC=${{ matrix.arch.prefix }}-w64-mingw32-gcc
+        export CXX=${{ matrix.arch.prefix }}-w64-mingw32-g++
         export WINDRES=${{ matrix.arch.prefix }}-w64-mingw32-windres
         export BUILD_DIR=build
         export BUILD_TYPE=MinSizeRel
