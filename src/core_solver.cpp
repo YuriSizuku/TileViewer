@@ -82,7 +82,7 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
             wxLogError("[TileSolver::LoadDecoder] cmodule %s, can not find decoder", filepath);
             return false;
         }
-        status = decoder->open(m_pluginfile.GetFullName().c_str().AsChar(), &decoder->context);
+        status = decoder->open(m_pluginfile.GetFullName().mb_str(), &decoder->context);
         if(!PLUGIN_SUCCESS(status)) 
         {
             wxLogError("[TileSolver::LoadDecoder] lua %s, decoder->open failed, msg: \n    %s", filepath, decoder->msg);
@@ -98,7 +98,7 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
     // find decoder successful
     if(decoder->msg && decoder->msg[0])
     {
-        wxLogMessage("[TileSolver::LoadDecoder] %s msg: \n    %s", pluginfile.GetFullName(), decoder->msg);
+        wxLogMessage("[TileSolver::LoadDecoder] %s decoder->open msg: \n    %s", pluginfile.GetFullName(), decoder->msg);
     }
     else
     {
@@ -107,6 +107,11 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
     if(m_decoder)
     {
         m_decoder->close(m_decoder->context);
+        if(m_decoder->msg && m_decoder->msg[0])
+        {
+            wxLogMessage("[TileSolver::Decode] %s decoder->close msg: \n    %s", 
+                pluginfile.GetFullName(), m_decoder->msg);
+        }
         m_decoder = nullptr;
     }
     m_decoder = decoder;
@@ -181,11 +186,16 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     if(cfg) m_tilecfg = *cfg;
     if(pluginfile.GetFullPath().Length() > 0) 
     {
-        m_pluginfile = pluginfile; // force reload a new plugin
         if(m_decoder) 
         {
             m_decoder->close(m_decoder->context);
+            if(m_decoder->msg && m_decoder->msg[0])
+            {
+                wxLogMessage("[TileSolver::Decode] %s decoder->close msg: \n    %s", 
+                    m_pluginfile.GetFullName(), m_decoder->msg);
+            }
         }
+        m_pluginfile = pluginfile; // force reload a new plugin
         m_decoder = nullptr;
     }
 
@@ -358,15 +368,25 @@ bool TileSolver::Save(wxFileName outfile)
     return image.SaveFile(m_outfile.GetFullPath());
 }
 
-bool TileSolver::Close()
+bool TileSolver::CloseFile()
 {
     m_infile.Clear(); // inpath
     m_filebuf.Clear(); // inbuf
     m_tiles.clear(); // decode 
     m_bitmap = wxBitmap(); // render
+    return true;
+}
+
+bool TileSolver::CloseDecoder()
+{
     if(m_decoder)
     {
         m_decoder->close(m_decoder->context);
+        if(m_decoder->msg && m_decoder->msg[0])
+        {
+            wxLogMessage("[TileSolver::Decode] %s decoder->close msg: \n    %s", 
+                m_pluginfile.GetFullName(), m_decoder->msg);
+        }
         m_decoder = nullptr;
     }
     if(m_cmodule.IsLoaded())
@@ -374,6 +394,11 @@ bool TileSolver::Close()
         m_cmodule.Unload();
     }
     return true;
+}
+
+bool TileSolver::Close()
+{
+    return CloseFile() & CloseDecoder();
 }
 
 bool TileSolver::DecodeOk()

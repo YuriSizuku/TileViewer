@@ -24,6 +24,8 @@ public:
     int Decode(struct tilecfg_t *cfg, wxFileName pluginfile = wxFileName()); // m_filebuf -> m_tiles
     bool Render(); // m_tiles -> m_bitmap
     bool Save(wxFileName outfile = wxFileName()); // m_bitmap -> outfile
+    bool CloseFile();
+    bool CloseDecoder();
     bool Close();
 
     bool DecodeOk();

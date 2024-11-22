@@ -74,15 +74,15 @@ CTRL+R reset scale and fit window to best size
 graph LR;
 m1[core_app]
 m2[TileSolver]
-c1[core_plugin]
-c2[core_decode]
+c1[plugin_builtin]
+c2[plugin_lua,cmodule]
 u1[TopFrame]
 u2[MainMenuBar]
 u3[ConfigWindow]
 u4[TileWinodw]
 u5[TileView]
 
-m1 --> u1 -- update status bar --> u2 -- load lua plugin--> c1
+m1 --> u1 -- update status bar --> u2 -- load plugin--> m2
 m1 --> u3 -- set tilecfg|tilenav --> u4
 m1 --> u4 -- update tilenav --> u3
 u4 -- render tiles --> u5
@@ -272,10 +272,10 @@ sh -c "export CC=x86_64-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw64 BUILD_T
 # windows llvm-mingw x86 release
 sh -c "export CC=i686-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw32 BUILD_TYPE=MinSizeRel && script/build_mingw.sh"
 
-# linux  mingw x64 debug
+# linux mingw x64 debug
 export CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres BUILD_DIR=build_mingw64 && bash script/build_mingw.sh
 
-# linux mingw x86 release
+# linux mingw x86 release (use gcc below 12 for xp)
 export CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres BUILD_DIR=build_mingw32 && BUILD_TYPE=MinSizeRel && bash script/build_mingw.sh
 ```
 
@@ -377,7 +377,7 @@ chmod +x script/*.sh
   * [x] llvm-mingw compile (x86, x64) ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))
   * [x] linux compile (x86, x64) ([v0.1.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
   * [x] linux cross compile by docker (arm32, arm64) ([v0.1.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
-  * [x] windows xp support (by i686-w64-mingw32-gcc, llvm-mingw not worked, because of tls ? ) ([v0.3.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.2))
+  * [x] windows xp support (by i686-w64-mingw32-gcc (below gcc 12), llvm-mingw not worked, because of tls ? ) ([v0.3.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.2))
   * [x] mac local compile (contributed by [TomJinW](https://github.com/TomJinW))
 
 ## Issues

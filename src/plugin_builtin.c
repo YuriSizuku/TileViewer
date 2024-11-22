@@ -11,11 +11,17 @@ static char s_msg[4096] = {0};
 
 PLUGIN_STATUS decode_open_default(const char *name, void **context)
 {
+    s_msg[0] = '\0';
+    sprintf(s_msg, "[plugin_builtin::open]");
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
     return STATUS_OK;
 }
 
 PLUGIN_STATUS decode_close_default(void *context)
 {
+    s_msg[0] = '\0';
+    sprintf(s_msg, "[plugin_builtin::close]");
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
     return STATUS_OK;
 }
 

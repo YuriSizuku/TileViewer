@@ -270,11 +270,12 @@ PLUGIN_STATUS decode_open_lua(const char *luastr, void **context)
     luaL_openlibs(L);
 
     // load the script
+    sprintf(s_msg, "[plugin_lua::open] ");
     lua_register(L, "log", capi_log);
     if(luaL_dostring(L, luastr) != LUA_OK)
     {
         const char *text = lua_tostring(L, -1);
-        sprintf(s_msg, "[decode_open_lua]  %s", text);
+        sprintf(s_msg, " %s", text);
         luaL_error(L, "Error: %s\n", text);
         lua_close(L);
         return STATUS_SCRIPTERROR;
@@ -291,6 +292,7 @@ PLUGIN_STATUS decode_open_lua(const char *luastr, void **context)
 PLUGIN_STATUS decode_close_lua(void *context)
 {
     s_msg[0] = '\0';
+    sprintf(s_msg, "[plugin_lua::close]");
     struct decode_context_t* _context = (struct decode_context_t*)context;
     lua_close(_context->L);
     _context->rawdata = NULL;
@@ -306,7 +308,7 @@ PLUGIN_STATUS decode_pixel_lua(void *context,
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
     struct pixel_t *pixel, bool remain_index)
 {
-    s_msg[0] = '\0';    
+    s_msg[0] = '\0';
     lua_State *L = ((struct decode_context_t*) context)->L;
     lua_getglobal(L, "decode_pixel");
     if(!lua_isfunction(L, -1))

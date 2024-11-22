@@ -366,7 +366,7 @@ void TileWindow::OnDropFile(wxDropFilesEvent& event)
 {
     auto infile = wxFileName(event.GetFiles()[0]);
     wxLogMessage("[TileWindow::OnDropFile] open %s", infile.GetFullPath());
-    wxGetApp().m_tilesolver.Close();
+    wxGetApp().m_tilesolver.CloseFile();
     if(!wxGetApp().m_tilesolver.Open(infile)) goto drop_file_failed;
     if(!wxGetApp().m_tilesolver.Decode(&g_tilecfg)) goto drop_file_failed;
     if(!wxGetApp().m_tilesolver.Render()) goto drop_file_failed;
