@@ -20,12 +20,12 @@ class TileSolver
 public: 
     TileSolver();
     bool LoadDecoder(wxFileName pluginfile);
+    bool UnloadDecoder();
+    
     size_t Open(wxFileName infile = wxFileName()); // file -> m_filebuf
     int Decode(struct tilecfg_t *cfg, wxFileName pluginfile = wxFileName()); // m_filebuf -> m_tiles
     bool Render(); // m_tiles -> m_bitmap
     bool Save(wxFileName outfile = wxFileName()); // m_bitmap -> outfile
-    bool CloseFile();
-    bool CloseDecoder();
     bool Close();
 
     bool DecodeOk();

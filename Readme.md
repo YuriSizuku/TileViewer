@@ -82,12 +82,12 @@ u3[ConfigWindow]
 u4[TileWinodw]
 u5[TileView]
 
-m1 --> u1 -- update status bar --> u2 -- load plugin--> m2
+m1 --> u1 -- update status bar --> u2 -- load plugin, file--> m2
 m1 --> u3 -- set tilecfg|tilenav --> u4
 m1 --> u4 -- update tilenav --> u3
 u4 -- render tiles --> u5
 u5 -- update postion --> u4
-u4 -- load and decode--> m2
+u4 -- load file, decode--> m2
 m2 --> c1
 m2 --> c2
 

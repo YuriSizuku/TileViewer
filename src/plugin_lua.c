@@ -270,7 +270,7 @@ PLUGIN_STATUS decode_open_lua(const char *luastr, void **context)
     luaL_openlibs(L);
 
     // load the script
-    sprintf(s_msg, "[plugin_lua::open] ");
+    sprintf(s_msg, "[plugin_lua::open]\n");
     lua_register(L, "log", capi_log);
     if(luaL_dostring(L, luastr) != LUA_OK)
     {

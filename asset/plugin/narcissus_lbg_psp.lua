@@ -3,7 +3,7 @@
 ---@diagnostic disable : duplicate-doc-field
 
 version = "v0.1"
-description = "[lua::init] lua plugin to decode narcissus psp swizzle texture3"
+description = "[lua_narcissus_lbg::init] lua plugin to decode narcissus psp swizzle texture"
 
 -- c types declear
 ---@class tilecfg_t
@@ -113,7 +113,7 @@ function decode_pre() -- callback for pre process
     g_tilecfg.nbytes = g_tilecfg.w * g_tilecfg.h * 4
     set_tilecfg(g_tilecfg) -- set the fmt data back to ui
     
-    log(string.format("[lua::decode_pre] datasize=%d w=%d h=%d bpp=%d nbytes=%d", 
+    log(string.format("[lua_narcissus_lbg::pre] datasize=%d w=%d h=%d bpp=%d nbytes=%d", 
         g_data:len(), g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp, g_tilecfg.nbytes ))
     return true
 end
@@ -134,7 +134,7 @@ end
 
 ---@type fun() : boolean 
 function decode_post() -- callback for post process
-    log("[lua::decode_post] decode finished")
+    log("[lua_narcissus_lbg::post] decode finished")
     set_tilenav({index=0, offset=-1})
     set_tilestyle({style=1, scale=1.5})
     g_data = nil

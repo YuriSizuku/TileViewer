@@ -104,17 +104,27 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
     {
         wxLogMessage("[TileSolver::LoadDecoder] %s", pluginfile.GetFullName());
     }
+    if(m_decoder) UnloadDecoder();
+    m_decoder = decoder;
+    return true;
+}
+
+bool TileSolver::UnloadDecoder()
+{
     if(m_decoder)
     {
         m_decoder->close(m_decoder->context);
         if(m_decoder->msg && m_decoder->msg[0])
         {
             wxLogMessage("[TileSolver::Decode] %s decoder->close msg: \n    %s", 
-                pluginfile.GetFullName(), m_decoder->msg);
+                m_pluginfile.GetFullName(), m_decoder->msg);
         }
         m_decoder = nullptr;
     }
-    m_decoder = decoder;
+    if(m_cmodule.IsLoaded())
+    {
+        m_cmodule.Unload();
+    }
     return true;
 }
 
@@ -186,15 +196,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     if(cfg) m_tilecfg = *cfg;
     if(pluginfile.GetFullPath().Length() > 0) 
     {
-        if(m_decoder) 
-        {
-            m_decoder->close(m_decoder->context);
-            if(m_decoder->msg && m_decoder->msg[0])
-            {
-                wxLogMessage("[TileSolver::Decode] %s decoder->close msg: \n    %s", 
-                    m_pluginfile.GetFullName(), m_decoder->msg);
-            }
-        }
+        if(m_decoder) UnloadDecoder();
         m_pluginfile = pluginfile; // force reload a new plugin
         m_decoder = nullptr;
     }
@@ -368,37 +370,13 @@ bool TileSolver::Save(wxFileName outfile)
     return image.SaveFile(m_outfile.GetFullPath());
 }
 
-bool TileSolver::CloseFile()
+bool TileSolver::Close()
 {
     m_infile.Clear(); // inpath
     m_filebuf.Clear(); // inbuf
     m_tiles.clear(); // decode 
     m_bitmap = wxBitmap(); // render
     return true;
-}
-
-bool TileSolver::CloseDecoder()
-{
-    if(m_decoder)
-    {
-        m_decoder->close(m_decoder->context);
-        if(m_decoder->msg && m_decoder->msg[0])
-        {
-            wxLogMessage("[TileSolver::Decode] %s decoder->close msg: \n    %s", 
-                m_pluginfile.GetFullName(), m_decoder->msg);
-        }
-        m_decoder = nullptr;
-    }
-    if(m_cmodule.IsLoaded())
-    {
-        m_cmodule.Unload();
-    }
-    return true;
-}
-
-bool TileSolver::Close()
-{
-    return CloseFile() & CloseDecoder();
 }
 
 bool TileSolver::DecodeOk()

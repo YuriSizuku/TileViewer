@@ -26,7 +26,7 @@ static stbi_uc *g_img = NULL;
 PLUGIN_STATUS decode_open(const char *name, void **context)
 {
     s_msg[0] = '\0';
-    sprintf(s_msg, "[cmodule:decode_open] open %s, version v0.1", name);
+    sprintf(s_msg, "[cmodule_util_png::open] open %s, version v0.1", name);
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
     return STATUS_OK;
 }
@@ -34,7 +34,7 @@ PLUGIN_STATUS decode_open(const char *name, void **context)
 PLUGIN_STATUS decode_close(void *context)
 {
     s_msg[0] = '\0';
-    sprintf(s_msg, "[cmodule:decode_close]");
+    sprintf(s_msg, "[cmodule_util_png::close]");
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
     return STATUS_OK;
 }
@@ -100,10 +100,10 @@ PLUGIN_STATUS decode_pre(void *context,
     g_img = stbi_load_from_memory(rawdata + cfg->start, datasize, &w, &h, &c, 0);
     if(!g_img)
     {
-        sprintf(s_msg + strlen(s_msg), "[util_png:decode_pre] not a png format\n");
+        sprintf(s_msg + strlen(s_msg), "[cmodule_util_png::pre] not a png format\n");
         return STATUS_FAIL;
     }
-    sprintf(s_msg + strlen(s_msg), "[util_png:decode_pre] png %dx%dx%d\n", w, h, c);
+    sprintf(s_msg + strlen(s_msg), "[cmodule_util_png::pre] png %dx%dx%d\n", w, h, c);
 
     // change tilefmt
     cfg->bpp = c * 8;
@@ -121,7 +121,7 @@ PLUGIN_STATUS decode_post(void *context,
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
 {
     s_msg[0] = '\0';
-    sprintf(s_msg + strlen(s_msg), "[util_png:decode_post] \n");
+    sprintf(s_msg + strlen(s_msg), "[cmodule_util_png::post] \n");
     if(g_img) stbi_image_free(g_img);
 
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';

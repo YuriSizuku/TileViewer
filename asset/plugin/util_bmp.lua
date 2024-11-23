@@ -3,7 +3,7 @@
 ---@diagnostic disable : duplicate-doc-field
 
 version = "v0.1"
-description = "[lua::init] lua plugin to decode bmp format2"
+description = "[lua_util_bmp::init] lua plugin to decode bmp format2"
 
 -- c types declear
 ---@class tilecfg_t
@@ -73,7 +73,7 @@ function decode_pre() -- callback for pre process
     end
     g_data = get_rawdata(g_tilecfg.start, g_datasize);
     if(g_data:byte(1)~=0x42 and g_data:byte(2)~=0x4d) then
-        log("[lua::decode_pre] invalid format for bmp!")
+        log("[lua_util_bmp::pre] invalid format for bmp!")
         return false
     end
 
@@ -85,7 +85,7 @@ function decode_pre() -- callback for pre process
     g_tilecfg.nbytes = 0
     set_tilecfg(g_tilecfg) -- set the fmt data back to ui
     
-    log(string.format("[lua::decode_pre] datasize=%d w=%d h=%d bpp=%d nbytes=%d", 
+    log(string.format("[lua_util_bmp::pre] datasize=%d w=%d h=%d bpp=%d nbytes=%d", 
         g_data:len(), g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp, g_tilecfg.nbytes ))
     return true
 end
@@ -105,7 +105,7 @@ end
 
 ---@type fun() : boolean 
 function decode_post() -- callback for post process
-    log("[lua::decode_post] decode finished")
+    log("[lua_util_bmp::post] decode finished")
     set_tilenav({index=0, offset=-1})
     g_data = nil
     return true

@@ -94,7 +94,7 @@ void MainMenuBar::OnOpen(wxCommandEvent& WXUNUSED(event))
     auto inpath = filedialog.GetPath();
     wxLogMessage("[MainMenuBar::OnOpen] open %s", inpath);
     
-    wxGetApp().m_tilesolver.CloseFile();
+    wxGetApp().m_tilesolver.Close();
     if(!wxGetApp().m_tilesolver.Open(inpath)) goto menu_open_failed;
     if(!wxGetApp().m_tilesolver.Decode(&g_tilecfg)) goto menu_open_failed;
     
@@ -112,7 +112,7 @@ menu_open_failed:
 
 void MainMenuBar::OnClose(wxCommandEvent& WXUNUSED(event))
 {
-    wxGetApp().m_tilesolver.CloseFile();
+    wxGetApp().m_tilesolver.Close();
     reset_tilenav(&g_tilenav);
     NOTIFY_UPDATE_TILENAV();
     NOTIFY_UPDATE_TILES(); // notify all
@@ -145,7 +145,7 @@ void MainMenuBar::OnPlugin(wxCommandEvent& event)
 
     wxLogMessage("[MainMenuBar::OnPlugin] change plugin index to %i (%s)", 
         pluginidx, pluginfile.GetFullName());
-    wxGetApp().m_tilesolver.CloseDecoder();
+    wxGetApp().m_tilesolver.UnloadDecoder();
     if(wxGetApp().m_tilesolver.Decode(&g_tilecfg, pluginfile) < 0)  goto menu_plugin_failed;
     reset_tilenav(&g_tilenav);
     NOTIFY_UPDATE_TILENAV();
