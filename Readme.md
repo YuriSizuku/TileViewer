@@ -183,8 +183,9 @@ gcc -g -Idepend/stb-lastest -Isrc -fPIC -fvisibility=hidden -static-libgcc -shar
 
 ### (3) Lua plugin
 
-Use `log` to print values in logwindow, implement `decode_pre`,  `decode_pixel` and `decode_post` to decode tiles;
-You can use capi functions as below, usually in `decode_pre` to reduce overhead. See `asset/plugin/` in detail.  
+Implement `decode_pre`,  `decode_pixel` and `decode_post` to decode tiles. You can use capi functions as below, usually in `decode_pre` to reduce overhead. See `asset/plugin/` in detail.  
+
+As for debugging lua script, one way is to use `log` to print values in logwindow; the other way is to redirct `stderr` to file, for example `TileViewer.exe -i c005.spc.dec --plugin plugin/narcissus_lbg_psp.lua >plugin_log.txt 2>&1`
 
 Notice that the **lua index is start from 1** !
 
@@ -232,6 +233,14 @@ function decode_post() -- callback for post process
     -- implement your code here
     return true
 end
+```
+
+You can also load extern lualib, for example, put [json.lua](https://github.com/rxi/json.lua) into `plugin\lualib` then load this plugin by `require`.  
+
+``` lua
+json = require "plugin.lualib.json"
+jstr = json.encode({ 1, 2, 3, { x = 10 } })
+log(jstr)
 ```
 
 ## Build
@@ -360,7 +369,10 @@ chmod +x script/*.sh
   * [x] redirect log message to log window
   * [x] implement command lines  
   * [x] decoder interface with different plugin (builtin, lua, C)
-  * [x] plugin built-in decoder, 2|4|8bpp, 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888) ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
+  * [x] plugin built-in decoder, ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
+    * [x] 2|4|8 bpp, little endian
+    * [ ] 3bpp (3 bytes for 8 pixels)
+    * [x] 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)  
   * [x] plugin lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
   * [x] plugin C decoder (dll, implement) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
   * [x] automaticaly reload the plugin when it changes ([v0.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.2))
@@ -371,6 +383,7 @@ chmod +x script/*.sh
   * [x] select and render tiles in real time when format changes
   * [x] scale render tile images (zoom in/out) ([v0.1.5](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
   * [ ] color palette load, save editor  (partly sovled by plugin)
+  * [ ] plugin can add property to left menu
 
 * Build
   * [x] use github action to auto build ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))
