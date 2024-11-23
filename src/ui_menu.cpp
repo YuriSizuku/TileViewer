@@ -195,6 +195,7 @@ void MainMenuBar::OnScale(wxCommandEvent& event)
         g_tilestyle.scale = 1.f;
         g_tilestyle.reset_scale = true;
     }
+    g_tilenav.scrollto = true;
     NOTIFY_UPDATE_TILES(); // notify tile style
 }
 

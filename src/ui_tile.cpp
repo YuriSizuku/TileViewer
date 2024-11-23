@@ -48,7 +48,7 @@ wxSize TileView::DeScaleV(const wxSize &val)
     return wxSize(DeScaleV(val.GetWidth()), DeScaleV(val.GetHeight()));
 }
 
-bool TileView::ScrollPos(int x, int y)
+bool TileView::ScrollPos(int x, int y, enum wxOrientation orient)
 {
     int scrollxu, scrollyu; 
     GetScrollPixelsPerUnit(&scrollxu, &scrollyu);
@@ -68,7 +68,15 @@ bool TileView::ScrollPos(int x, int y)
     }
     else
     {
-        Scroll(ScaleV(x) / scrollxu, ScaleV(y) / scrollyu);
+        if(orient==wxBOTH)
+        {
+            Scroll(ScaleV(x) / scrollxu, ScaleV(y) / scrollyu);
+        }
+        else
+        {
+            if(orient & wxHORIZONTAL) Scroll(ScaleV(x) / scrollxu, scrolly);
+            if(orient & wxVERTICAL) Scroll(scrollx, ScaleV(y) / scrollyu);
+        }
         return true;
     }
 }
@@ -184,11 +192,13 @@ TileView::TileView(wxWindow *parent)
 {
     SetScrollbars(20, 20, 35, 20);
     SetBackgroundColour(*wxLIGHT_GREY);
-    // SetBackgroundStyle(wxBG_STYLE_PAINT); // use this to prevent automatic erase
+    SetBackgroundStyle(wxBG_STYLE_PAINT); // use this to prevent automatic erase
 }
 
 void TileView::OnDraw(wxDC& dc)
 {
+    dc.Clear(); // this may cause flicker, but without clear, then blit will overlap
+
     int scrollxu, scrollyu; 
     int scrollx = GetScrollPos(wxHORIZONTAL);
     int scrolly = GetScrollPos(wxVERTICAL);
@@ -216,14 +226,15 @@ void TileView::OnDraw(wxDC& dc)
     else
     {
         // blit only the window area can reduce blinking, but may cause a lit bit shift
-        // slightly blit larger than the window, to prevent update remain problem (sometimes not work)
-        int extend_len = 200; 
-        logicx = wxMax<int>(logicx - extend_len, 0);
-        logicy = wxMax<int>(logicy - extend_len, 0);
-        clientw = wxMin<int>(clientw + ScaleV(extend_len), ScaleV(logicw - logicx));
-        clienth = wxMin<int>(clienth + ScaleV(extend_len), ScaleV(logich - logicy));
+        // slightly blit larger than the window, to prevent update remain problem
+        int radius = 200; 
+        logicx = wxMax<int>(logicx - radius, 0);
+        logicy = wxMax<int>(logicy - radius, 0);
+        clientw = wxMin<int>(clientw + ScaleV(2*radius), ScaleV(logicw - logicx));
+        clienth = wxMin<int>(clienth + ScaleV(2*radius), ScaleV(logich - logicy));
         dc.StretchBlit(ScaleV(logicx), ScaleV(logicy), clientw, clienth, &memdc, 
             logicx, logicy, DeScaleV(clientw), DeScaleV(clienth));
+        // dc.StretchBlit(0, 0, ScaleV(logicw), ScaleV(logich), &memdc, 0, 0, logicw, logich);
     }
     
     wxLogInfo(wxString::Format(
@@ -264,36 +275,49 @@ void TileView::OnMouseLeftDown(wxMouseEvent& event)
     int imgh = wxGetApp().m_tilesolver.m_bitmap.GetHeight();
     int x = wxMin<int>(DeScaleV(unscollpt.x), imgw - g_tilecfg.w);
     int y = wxMin<int>(DeScaleV(unscollpt.y), imgh - g_tilecfg.h);
+    int preindex = g_tilenav.index;
     g_tilenav.index = -1;
     g_tilenav.offset = -1;
     g_tilenav.x = x; g_tilenav.y = y;
     sync_tilenav(&g_tilenav, &g_tilecfg);
     g_tilenav.offset = -1; // to get the left corner of x, y
     sync_tilenav(&g_tilenav, &g_tilecfg); 
-    NOTIFY_UPDATE_TILENAV();
-    SetFocus();
-    Refresh();
+    if(preindex != g_tilenav.index)
+    {
+        SetFocus();
+        Refresh();
+        NOTIFY_UPDATE_TILENAV();
+    }
 }
 
 void TileView::OnMouseWheel(wxMouseEvent& event)
 {
-
     if(!event.ControlDown()) goto mouse_wheel_next;
+    
     if(event.GetWheelRotation() < 0)
     {
         if(g_tilestyle.scale > 1) g_tilestyle.scale -= 1;
         else g_tilestyle.scale -= 0.25;
-        g_tilestyle.scale = wxMax<float>(g_tilestyle.scale, 0.25f);
+        if(g_tilestyle.scale < 0.24f)
+        {
+            g_tilestyle.scale = 0.25;
+            return;
+        }
     }
     else
     {
         if(g_tilestyle.scale >= 1) g_tilestyle.scale += 1;
         else g_tilestyle.scale += 0.25;
-        g_tilestyle.scale = wxMin<float>(g_tilestyle.scale, 4.f);
+        if(g_tilestyle.scale > 4.1f)
+        {
+            g_tilestyle.scale = 4.f;
+            return;
+        }
     }
     PreStyle();
-    NOTIFY_UPDATE_STATUS(); 
     Refresh();
+    ScrollPos(g_tilenav.x, g_tilenav.y);
+    NOTIFY_UPDATE_STATUS();
 
 mouse_wheel_next:
     event.Skip();
@@ -304,6 +328,7 @@ void TileView::OnKeyDown(wxKeyEvent& event)
     int index = g_tilenav.index;
     int nrow = g_tilecfg.nrow;
     int col = (index - 1) % nrow;
+    enum wxOrientation orient = wxBOTH;
     if(event.CmdDown() || event.ControlDown() || event.AltDown()) goto key_down_next;
     
     switch(event.GetKeyCode())
@@ -312,17 +337,21 @@ void TileView::OnKeyDown(wxKeyEvent& event)
         case WXK_LEFT:
         if(col < 0) col += nrow;
         index = index / nrow * nrow +  col;
+        orient = wxHORIZONTAL;
         break;
         case 'J':
         case WXK_DOWN:
         index += nrow;
+        orient = wxVERTICAL;
         break;
         case 'K':
         case WXK_UP:        
         index -= nrow;
+        orient = wxVERTICAL;
         break;
         case 'L':
         case WXK_RIGHT:
+        orient = wxHORIZONTAL;
         index = index / nrow * nrow + (index%nrow + 1) % nrow;
         break;
         case WXK_PAGEDOWN:
@@ -341,9 +370,9 @@ void TileView::OnKeyDown(wxKeyEvent& event)
         g_tilenav.index = index;
         g_tilenav.offset = -1;
         sync_tilenav(&g_tilenav, &g_tilecfg);
-        ScrollPos(g_tilenav.x, g_tilenav.y); 
-        NOTIFY_UPDATE_TILENAV();
+        ScrollPos(g_tilenav.x, g_tilenav.y, orient); 
         Refresh(); // draw select boarder on window
+        NOTIFY_UPDATE_TILENAV();
         return;
     }
 

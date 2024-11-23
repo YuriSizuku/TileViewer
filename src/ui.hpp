@@ -90,7 +90,7 @@ public:
     // descale client pos -> logic pos
     int DeScaleV(int val);
     wxSize DeScaleV(const wxSize &val);
-    bool ScrollPos(int x, int y); // the pos in logical bitmap
+    bool ScrollPos(int x, int y, enum wxOrientation orient=wxBOTH); // the pos in logical bitmap
 
     TileView(wxWindow *parent);
     wxBitmap m_bitmap; // logical bitmap, as double frame buffer, dynamicly blit when OnDraw
