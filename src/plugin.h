@@ -130,9 +130,9 @@ typedef PLUGIN_STATUS (*CB_decode_open)(const char *name, void **context);
 typedef PLUGIN_STATUS (*CB_decode_close)(void *context);
 
 /**
- *  decode 1 pixel from the offset
+ *  decode 1 pixel 
  * @param data, corrent decoding data
- * @param pixel_t out a uint32_t value
+ * @param pixel out a uint32_t value
  * @param remain_index keep the origin index
  */
 typedef PLUGIN_STATUS (*CB_decode_pixel)(void *context, 
@@ -141,24 +141,46 @@ typedef PLUGIN_STATUS (*CB_decode_pixel)(void *context,
     struct pixel_t *pixel, bool remain_index);
 
 /**
+ *  decode all pixels
+ * @param data, corrent decoding data
+ * @param pixel out all pixel bufer
+ * @param npixel how many pixels for all tiles
+ * @param remain_index keep the origin index
+ */
+typedef PLUGIN_STATUS (*CB_decode_pixels)(void *context, 
+    const uint8_t* data, size_t datasize, 
+    const struct tilefmt_t, struct pixel_t *pixel, 
+    size_t *npixel, bool remain_index);
+
+/**
  * decode pre, post processing
  * @param rawdata rawdata of the file
  */
 typedef PLUGIN_STATUS (*CB_decode_parse)(void *context, 
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg);
+/**
+ * make config widget to main ui, or get config from main ui
+ */
+typedef PLUGIN_STATUS (*CB_decode_config)(void *context, 
+    const char *jsonstr, size_t jsonsize);
 
 /**
  * interface for C plugin
  */
 struct tile_decoder_t
 {
-    REQUIRED CB_decode_open open; // open the decoder when loading decoder
-    REQUIRED CB_decode_close close; // close the decoder when changing decoder
-    REQUIRED CB_decode_pixel decode; // decode each pixel (fill the (i, x, y) pixel)
-    OPTIONAL CB_decode_parse pre; // before decoding whole tiles (usually make some tmp values here)
-    OPTIONAL CB_decode_parse post; // after decoding whole tiles(usually clean some tmp values here)
+    uint32_t version; // required tileviewer version, for example v0.3.4 = 340
+    uint32_t size; // this structure size
     void* context; // opaque pointer for decoder context, user defined struct
     const char *msg; // for passing log informations to log window
+    REQUIRED CB_decode_open open; // open the decoder when loading decoder
+    REQUIRED CB_decode_close close; // close the decoder when changing decoder
+    REQUIRED CB_decode_pixel decodeone; // decode one pixel (fill the (i, x, y) pixel)
+    REQUIRED CB_decode_pixels decodeall; // decode all pixels (if not find decodeone, it will use decodeall)
+    OPTIONAL CB_decode_parse pre; // before decoding whole tiles (usually make some tmp values here)
+    OPTIONAL CB_decode_parse post; // after decoding whole tiles(usually clean some tmp values here)
+    OPTIONAL CB_decode_config setui; // for setting ui widget
+    OPTIONAL CB_decode_config getui; // for getting ui widget
 };
 
 /**

@@ -130,7 +130,10 @@ PLUGIN_STATUS decode_post(void *context,
 }
 
 EXPORT struct tile_decoder_t decoder = {
+    .version = 340, .size = sizeof(struct tile_decoder_t), 
+    .msg = s_msg, .context = NULL, 
     .open = decode_open, .close = decode_close, 
-    .decode = decode_pixel, 
-    .pre = decode_pre, .post=decode_post, .msg = s_msg
+    .decodeone = decode_pixel,  .decodeall = NULL, 
+    .pre = decode_pre, .post=decode_post, 
+    .setui=NULL, .getui=NULL, 
 };

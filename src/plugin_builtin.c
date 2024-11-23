@@ -108,7 +108,10 @@ PLUGIN_STATUS decode_pixel_default(void *context,
 }
 
 struct tile_decoder_t g_decoder_default = {
+    .version = 340, .size = sizeof(struct tile_decoder_t), 
+    .msg = s_msg, .context = NULL,
     .open = decode_open_default, .close = decode_close_default, 
-    .decode = decode_pixel_default, 
-    .pre = NULL, .post=NULL, .msg = s_msg
+    .decodeone = decode_pixel_default, .decodeall = NULL, 
+    .pre = NULL, .post=NULL, 
+    .setui=NULL, .getui=NULL, 
 };

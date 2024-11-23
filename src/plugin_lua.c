@@ -372,6 +372,10 @@ PLUGIN_STATUS decode_post_lua(void *context,
 }
 
 struct tile_decoder_t g_decoder_lua = {
-    .open = decode_open_lua, .close = decode_close_lua, .decode = decode_pixel_lua, 
-    .pre=decode_pre_lua, .post=decode_post_lua, .msg = s_msg, .context = NULL
+    .version = 340, .size = sizeof(struct tile_decoder_t), 
+    .msg = s_msg, .context = NULL, 
+    .open = decode_open_lua, .close = decode_close_lua, 
+    .decodeone = decode_pixel_lua, .decodeall = NULL, 
+    .pre=decode_pre_lua, .post=decode_post_lua, 
+    .setui=NULL, .getui=NULL, 
 };

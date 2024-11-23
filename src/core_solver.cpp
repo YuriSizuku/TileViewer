@@ -253,7 +253,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
                 {
                     struct tilepos_t pos = {i, x, y};
                     struct pixel_t pixel = {0};
-                    status = decoder->decode(context, // lua function might not be in omp parallel
+                    status = decoder->decodeone(context, // lua function might not be in omp parallel
                         rawdata + start, datasize, &pos, &m_tilecfg.fmt, &pixel, false);
                     if(!PLUGIN_SUCCESS(status))
                     {
