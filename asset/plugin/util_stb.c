@@ -1,13 +1,14 @@
 /**
- * implement for c module plugin png
+ * implement for c module plugin to decode images by stb
  *   developed by devseed
  */
 
 #include <stdio.h>
 #include <string.h>
 #include "plugin.h"
- 
+
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_STATIC
 #include "stb_image.h"
 
 #if defined(_MSC_VER) || defined(__TINYC__)
@@ -79,6 +80,17 @@ PLUGIN_STATUS decode_pixel(void *context,
     return STATUS_OK;
 }
 
+PLUGIN_STATUS decode_pixels(void *context, 
+    const uint8_t* data, size_t datasize, 
+    const struct tilefmt_t *fmt, struct pixel_t *pixels[], 
+    size_t *npixel, bool remain_index)
+{
+    *pixels = (struct pixel_t *)g_img;
+    *npixel = fmt->nbytes;
+    return STATUS_OK;
+}
+
+
 PLUGIN_STATUS decode_pre(void *context, 
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
 {
@@ -133,7 +145,7 @@ EXPORT struct tile_decoder_t decoder = {
     .version = 340, .size = sizeof(struct tile_decoder_t), 
     .msg = s_msg, .context = NULL, 
     .open = decode_open, .close = decode_close, 
-    .decodeone = decode_pixel,  .decodeall = NULL, 
+    .decodeone = NULL,  .decodeall = decode_pixels,  // this example use decode_pixels
     .pre = decode_pre, .post=decode_post, 
     .setui=NULL, .getui=NULL, 
 };

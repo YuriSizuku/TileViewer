@@ -240,30 +240,58 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     // decoding
     auto datasize  = PrepareTilebuf();
     size_t ntile = m_tiles.size();
+    size_t nbytes = calc_tile_nbytes(&m_tilecfg.fmt);
     if(datasize) 
     {
-        for(int i=0; i< ntile; i++)
+        if(decoder->decodeall)
         {
-            auto& tile = m_tiles[i];
-            uint8_t *rgbdata = tile.GetData();
-            uint8_t *adata = tile.GetAlpha();
-            for(int y=0; y < m_tilecfg.h; y++)
+            size_t npixel; 
+            struct pixel_t *pixels;
+            status = decoder->decodeall(context, 
+                rawdata + start, datasize, &m_tilecfg.fmt,  &pixels, &npixel, true);
+            for(int i=0; i< ntile; i++)
             {
-                for(int x=0; x < m_tilecfg.w; x++)
+                size_t offset = i * nbytes;
+                if(offset + nbytes > npixel) break;
+                auto& tile = m_tiles[i];
+                uint8_t *rgbdata = tile.GetData();
+                uint8_t *adata = tile.GetAlpha();
+                for(int pixeli=0; pixeli < m_tilecfg.fmt.w * m_tilecfg.fmt.h; pixeli++)
                 {
-                    struct tilepos_t pos = {i, x, y};
-                    struct pixel_t pixel = {0};
-                    status = decoder->decodeone(context, // lua function might not be in omp parallel
-                        rawdata + start, datasize, &pos, &m_tilecfg.fmt, &pixel, false);
-                    if(!PLUGIN_SUCCESS(status))
-                    {
-                        continue;
-                    }
-                    auto pixeli = y * m_tilecfg.w  + x;
-                    memcpy(rgbdata + pixeli*3, &pixel, 3);
-                    adata[pixeli] = pixel.a; // alpah is seperate channel
+                    memcpy(rgbdata + pixeli*3, (void*)(pixels + pixeli), 3);
+                    adata[pixeli] = pixels[pixeli].a; // alpah is seperate channel
                 }
             }
+        }
+        else if(decoder->decodeone)
+        {
+            for(int i=0; i< ntile; i++)
+            {
+                auto& tile = m_tiles[i];
+                uint8_t *rgbdata = tile.GetData();
+                uint8_t *adata = tile.GetAlpha();
+                for(int y=0; y < m_tilecfg.h; y++)
+                {
+                    for(int x=0; x < m_tilecfg.w; x++)
+                    {
+                        struct tilepos_t pos = {i, x, y};
+                        struct pixel_t pixel = {0};
+                        status = decoder->decodeone(context, // lua function might not be in omp parallel
+                            rawdata + start, datasize, &pos, &m_tilecfg.fmt, &pixel, false);
+                        if(!PLUGIN_SUCCESS(status))
+                        {
+                            continue;
+                        }
+                        auto pixeli = y * m_tilecfg.w  + x;
+                        memcpy(rgbdata + pixeli*3, &pixel, 3);
+                        adata[pixeli] = pixel.a; // alpah is seperate channel
+                    }
+                }
+            }
+        }
+        else
+        {
+            wxLogError("[TileSolver::Decode] no decode function");
         }
     }
     else
@@ -296,7 +324,6 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
         NOTIFY_UPDATE_TILENAV();
         NOTIFY_UPDATE_TILECFG();
     }
-    size_t nbytes = calc_tile_nbytes(&m_tilecfg.fmt);
     wxLogMessage(wxString::Format(
         "[TileSolver::Decode] decode %zu tiles with %zu bytes, in %llu ms", 
         ntile, nbytes, (time_end - time_start).GetMilliseconds()));

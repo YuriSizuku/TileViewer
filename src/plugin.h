@@ -143,13 +143,13 @@ typedef PLUGIN_STATUS (*CB_decode_pixel)(void *context,
 /**
  *  decode all pixels
  * @param data, corrent decoding data
- * @param pixel out all pixel bufer
+ * @param pixels out all pixel buffer, this should be alloced by the plugin
  * @param npixel how many pixels for all tiles
  * @param remain_index keep the origin index
  */
 typedef PLUGIN_STATUS (*CB_decode_pixels)(void *context, 
     const uint8_t* data, size_t datasize, 
-    const struct tilefmt_t, struct pixel_t *pixel, 
+    const struct tilefmt_t *fmt, struct pixel_t *pixels[], 
     size_t *npixel, bool remain_index);
 
 /**
@@ -162,7 +162,7 @@ typedef PLUGIN_STATUS (*CB_decode_parse)(void *context,
  * make config widget to main ui, or get config from main ui
  */
 typedef PLUGIN_STATUS (*CB_decode_config)(void *context, 
-    const char *jsonstr, size_t jsonsize);
+    char *jsonstr, size_t jsonsize);
 
 /**
  * interface for C plugin

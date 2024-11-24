@@ -178,7 +178,7 @@ For example, to built plugin `asset/png.c`
 mkdir -p build_mingw64/plugin
 . script/fetch_depend.sh
 fetch_stb
-gcc -g -Idepend/stb-lastest -Isrc -fPIC -fvisibility=hidden -static-libgcc -shared asset/plugin/util_png.c -o build_mingw64/plugin/util_png.dll
+gcc -g -Idepend/stb-lastest -Isrc -fPIC -fvisibility=hidden -static-libgcc -shared asset/plugin/util_stb.c -o build_mingw64/plugin/util_stb.dll
 ```
 
 ### (3) Lua plugin
