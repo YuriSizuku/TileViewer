@@ -100,11 +100,11 @@ void ConfigWindow::OnPropertyGridChanged(wxPropertyGridEvent& event)
         }
         
         // check bpp
-        if(g_tilecfg.bpp!=2 && g_tilecfg.bpp!=4 && g_tilecfg.bpp!=8 
+        if(g_tilecfg.bpp!=2 && g_tilecfg.bpp!=3 && g_tilecfg.bpp!=4 && g_tilecfg.bpp!=8 
             && g_tilecfg.bpp!=16 && g_tilecfg.bpp!=24 && g_tilecfg.bpp!=32)
         {
             wxMessageBox(wxString::Format(
-                "bpp %d might failed, should be 2,4,8,16,24,32", g_tilecfg.bpp), 
+                "bpp %d might failed, should be 2,3,4,8,16,24,32", g_tilecfg.bpp), 
                 "warning", wxICON_WARNING);
         }
 
