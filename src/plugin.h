@@ -176,7 +176,7 @@ struct tile_decoder_t
     REQUIRED CB_decode_open open; // open the decoder when loading decoder
     REQUIRED CB_decode_close close; // close the decoder when changing decoder
     REQUIRED CB_decode_pixel decodeone; // decode one pixel (fill the (i, x, y) pixel)
-    REQUIRED CB_decode_pixels decodeall; // decode all pixels (if not find decodeone, it will use decodeall)
+    REQUIRED CB_decode_pixels decodeall; // decode all pixels (if not find decodeall, it will use decodeone)
     OPTIONAL CB_decode_parse pre; // before decoding whole tiles (usually make some tmp values here)
     OPTIONAL CB_decode_parse post; // after decoding whole tiles(usually clean some tmp values here)
     OPTIONAL CB_decode_config setui; // for setting ui widget

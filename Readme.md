@@ -156,23 +156,28 @@ m2 --> c2
 
 ### (2) C plugin
 
-Implement these function for C decoder plugin, see `src/plugin.h` in detail.  
+Implement these function for C decoder plugin, then export either struct `decoder` or function `get_decoder`, see `src/plugin.h` in detail.  
 
 ``` C
 
 struct tile_decoder_t
 {
-    REQUIRED CB_decode_open open; // open the decoder when loading decoder
-    REQUIRED CB_decode_close close; // close the decoder when changing decoder
-    REQUIRED CB_decode_pixel decode; // decode each pixel (fill the (i, x, y) pixel)
-    OPTIONAL CB_decode_parse pre; // before decoding whole tiles (usually make some tmp values here)
-    OPTIONAL CB_decode_parse post; // after decoding whole tiles(usually clean some tmp values here)
+    uint32_t version; // required tileviewer version, for example v0.3.4 = 340
+    uint32_t size; // this structure size
     void* context; // opaque pointer for decoder context, user defined struct
     const char *msg; // for passing log informations to log window
+    REQUIRED CB_decode_open open; // open the decoder when loading decoder
+    REQUIRED CB_decode_close close; // close the decoder when changing decoder
+    REQUIRED CB_decode_pixel decodeone; // decode one pixel (fill the (i, x, y) pixel)
+    REQUIRED CB_decode_pixels decodeall; // decode all pixels (if not find decodeall, it will use decodeone)
+    OPTIONAL CB_decode_parse pre; // before decoding whole tiles (usually make some tmp values here)
+    OPTIONAL CB_decode_parse post; // after decoding whole tiles(usually clean some tmp values here)
+    OPTIONAL CB_decode_config setui; // for setting ui widget
+    OPTIONAL CB_decode_config getui; // for getting ui widget
 };
 ```
 
-For example, to built plugin `asset/png.c`
+For example, to built plugin `asset/util_stb.c`
 
 ``` sh
 mkdir -p build_mingw64/plugin
@@ -371,7 +376,7 @@ chmod +x script/*.sh
   * [x] decoder interface with different plugin (builtin, lua, C)
   * [x] plugin built-in decoder, ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
     * [x] 2|4|8 bpp, little endian
-    * [ ] 3bpp (3 bytes for 8 pixels)
+    * [x] 3bpp (3 bytes for 8 pixels) ([v0.3.3.7](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.7))
     * [x] 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)  
   * [x] plugin lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
   * [x] plugin C decoder (dll, implement) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
