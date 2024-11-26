@@ -93,10 +93,11 @@ PLUGIN_STATUS decode_pixel_default(void *context,
         size_t nbytes = calc_tile_nbytes(fmt);
         int pixel_idx = pos->x + pos->y * fmt->w;
         offset =  pos->i * nbytes + pixel_idx / 8 * 3; // offset is incresed by 3
-        uint8_t bitshift = (pixel_idx % 8) * bpp; 
+        uint8_t bitshift = 21  - (pixel_idx % 8) * bpp; 
         uint32_t mask = ((1<<bpp) - 1) << bitshift;
         uint32_t d3 = *(uint32_t*)(data + offset) & 0x00ffffff;
-        uint8_t d = ((d3 & mask) >> bitshift) & 0xff;
+        d3 = ((d3 & 0xFF) << 16) | ((d3 & 0xFF00)) | ((d3 & 0xFF0000) >> 16);
+        uint8_t d = (d3 & mask) >> bitshift ;
         if(remain_index)
         {
             pixel->d = d;
