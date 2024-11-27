@@ -11,6 +11,7 @@ echo "## CC=$CC BUILD_DIR=$BUILD_DIR BUILD_TYPE=$BUILD_TYPE"
 mkdir -p depend
 source script/fetch_depend.sh
 fetch_lua
+fetch_cjson
 
 # build project
 cmake -G "Unix Makefiles" -B $BUILD_DIR \

@@ -4,6 +4,7 @@
  */
 
 #include <wx/wx.h>
+#include <cJSON.h>
 #include "ui.hpp"
 #include "core.hpp"
 
@@ -17,6 +18,24 @@ wxBEGIN_EVENT_TABLE(ConfigWindow, wxWindow)
     EVT_COMMAND(wxID_ANY, EVENT_UPDATE_TILECFG, ConfigWindow::OnUpdateTilecfg)
     EVT_COMMAND(wxID_ANY, EVENT_UPDATE_TILENAV, ConfigWindow::OnUpdateTilenav)
 wxEND_EVENT_TABLE()
+
+void SetTilecfg(wxString& text, struct tilecfg_t &cfg)
+{
+    cJSON *root = cJSON_Parse(text.mb_str());
+    if(root)
+    {
+        const cJSON* prop = cJSON_GetObjectItem(root, "tilecfg");
+        const cJSON* v = nullptr;
+        v = cJSON_GetObjectItem(prop, "start"); if(v) cfg.start = v->valueint;
+        v = cJSON_GetObjectItem(prop, "size"); if(v) cfg.size = v->valueint;
+        v = cJSON_GetObjectItem(prop, "nrow"); if(v) cfg.nrow = v->valueint;
+        v = cJSON_GetObjectItem(prop, "w"); if(v) cfg.w = v->valueint;
+        v = cJSON_GetObjectItem(prop, "h"); if(v) cfg.h = v->valueint;
+        v = cJSON_GetObjectItem(prop, "bpp"); if(v) cfg.bpp = v->valueint;
+        v = cJSON_GetObjectItem(prop, "nbytes"); if(v) cfg.nbytes = v->valueint;
+        cJSON_Delete(root);
+    }
+}
 
 void ConfigWindow::LoadTilecfg(struct tilecfg_t &cfg)
 {
@@ -38,6 +57,100 @@ void ConfigWindow::SaveTilecfg(struct tilecfg_t &cfg)
     cfg.h = m_pg->GetPropertyValue("tilecfg.h").GetLong();
     cfg.bpp = m_pg->GetPropertyValue("tilecfg.bpp").GetLong();
     cfg.nbytes = m_pg->GetPropertyValue("tilecfg.nbytes").GetLong();
+}
+
+void ConfigWindow::SetPlugincfg(wxString& text)
+{
+    auto plugincfg = m_pg->GetPropertyByName("plugincfg");
+    wxLogMessage(wxString::Format("[ConfigWindow::SetPlugincfg] %s", text));
+    cJSON *root = cJSON_Parse(text.mb_str());
+    if(root)
+    {
+        const cJSON* prop;
+        const cJSON* props = cJSON_GetObjectItem(root, "plugincfg");
+        cJSON_ArrayForEach(prop, props)
+        {
+            const cJSON* name = cJSON_GetObjectItem(prop, "name");
+            const cJSON* type = cJSON_GetObjectItem(prop, "type");
+            const cJSON* help = cJSON_GetObjectItem(prop, "help");
+            const cJSON* value = cJSON_GetObjectItem(prop, "value");
+            wxPGProperty *wxprop = nullptr;
+            if(!name) continue;
+            if(!type) continue;
+
+            if(!strcmp(type->valuestring, "enum"))
+            {
+                auto enumprop = new wxEnumProperty(name->valuestring);
+                const cJSON* option = nullptr;
+                const cJSON* options = cJSON_GetObjectItem(prop, "options");
+                cJSON_ArrayForEach(option, options)
+                {
+                    enumprop->AddChoice(option->valuestring);
+                }
+                if(value) enumprop->SetChoiceSelection(value->valueint);
+                wxprop = enumprop;
+            }
+            else if(!strcmp(type->valuestring, "int"))
+            {
+                wxprop = new wxIntProperty(name->valuestring);
+                if(value) wxprop->SetValue(value->valueint);
+            }
+            else if(!strcmp(type->valuestring, "string"))
+            {
+                wxprop = new wxStringProperty(name->valuestring);
+                if(value) wxprop->SetValue(value->valuestring);
+            }
+            else if(!strcmp(type->valuestring, "bool"))
+            {
+                wxprop = new wxBoolProperty(name->valuestring);
+                if(value) wxprop->SetValue(value->valuestring);
+            }
+
+            if(wxprop) 
+            {
+                if(help) wxprop->SetHelpString(help->valuestring);
+                m_pg->AppendIn(plugincfg, wxprop);
+            }
+        }
+
+        cJSON_Delete(root);
+    }
+    this->Refresh();
+}
+
+wxString ConfigWindow::GetPlugincfg()
+{
+    wxString text;
+
+    cJSON *root = cJSON_CreateObject(); 
+    cJSON *props = cJSON_CreateArray();
+    cJSON_AddItemToObject(root, "plugincfg", props);
+    for (auto it = m_pg->GetIterator(); !it.AtEnd(); it++)
+    {
+        wxPGProperty* p = *it;
+        if(p->GetParent()->GetName() != "plugincfg") continue;
+        cJSON *prop = cJSON_CreateObject();
+        cJSON *name = cJSON_CreateString(p->GetName());
+        cJSON *value = nullptr;
+        if(p->GetValueType() != "string") value = cJSON_CreateNumber(p->GetValue());
+        else value = cJSON_CreateString(p->GetValueAsString());
+
+        cJSON_AddItemToObject(prop, "name", name);
+        cJSON_AddItemToObject(prop, "value", value);
+        cJSON_AddItemToArray(props, prop);
+    }
+    text.Append(cJSON_PrintUnformatted(root));
+    cJSON_Delete(root);
+    
+    wxLogMessage(wxString::Format("[ConfigWindow::GetPlugincfg] %s", text));
+    return text;
+}
+
+void ConfigWindow::ClearPlugincfg()
+{
+    auto plugincfg = m_pg->GetPropertyByName("plugincfg");
+    plugincfg->DeleteChildren();
+    this->Refresh();
 }
 
 ConfigWindow::ConfigWindow(wxWindow* parent)
@@ -69,6 +182,7 @@ ConfigWindow::ConfigWindow(wxWindow* parent)
     pg->SetPropertyHelpString("tilecfg.h", "tile height");
     pg->SetPropertyHelpString("tilecfg.bpp", "tile bpp per pixel");
     pg->SetPropertyHelpString("tilecfg.nbytes", "tile size in byte (0 for w*h*bpp/8)");
+    LoadTilecfg(g_tilecfg);
 
     // tilenav
     auto tilenav = new wxPropertyCategory("tilenav");
@@ -78,7 +192,9 @@ ConfigWindow::ConfigWindow(wxWindow* parent)
     pg->SetPropertyHelpString("tilenav.offset", "current selected tile offset in file");
     pg->SetPropertyHelpString("tilenav.index", "current selected tile index");
 
-    LoadTilecfg(g_tilecfg);
+    // plugincfg
+    auto plugincfg = new wxPropertyCategory("plugincfg");
+    pg->Append(plugincfg);
 }
 
 void ConfigWindow::OnPropertyGridChanged(wxPropertyGridEvent& event)
@@ -152,6 +268,13 @@ void ConfigWindow::OnPropertyGridChanged(wxPropertyGridEvent& event)
         g_tilenav.scrollto = true; 
         NOTIFY_UPDATE_TILES(); // notify tilenav
     }
+    else if(prop->GetParent()->GetName() == "plugincfg")
+    {
+        wxGetApp().m_tilesolver.Decode(&g_tilecfg);
+        g_tilenav.offset = -1; // prevent nrow chnages
+        sync_tilenav(&g_tilenav, &g_tilecfg); 
+        NOTIFY_UPDATE_TILES(); // notify tilecfg
+    }  
     wxLogMessage(wxString::Format("[ConfigWindow::OnPropertyGridChanged] %s.%s=%s", 
         prop->GetParent()->GetName(), prop->GetName(), prop->GetValue().MakeString()));
 }

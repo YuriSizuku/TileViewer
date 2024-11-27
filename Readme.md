@@ -28,6 +28,7 @@ Usage: TileViewer [-n] [-i <str>] [-o <str>] [-p <str>]
   -i, --inpath=<str>  tile file inpath
   -o, --outpath=<str> outpath for decoded file
   -p, --plugin=<str>  use lua plugin to decode
+  --plugincfg=<str>   use plugincfg, default is xxx.json with xxx plugin
   --start=<num>       tile start offset
   --size=<num>        whole tile size
   --nrow=<num>        how many tiles in a row
@@ -44,6 +45,7 @@ command line example
 ```sh
 TileViewer --inpath ../asset/sample/it.bin --width 20 --height 18 --bpp 2 --nbytes 92 --outpath it.png
 TileViewer --inpath ../asset/sample/c005.spc.dec --plugin ../asset/plugin/narcissus_lbg_psp.lua --outpath c005.spc.png
+TileViewer --inpath ../asset/sample/ZI24.FNT --plugincfg ../asset/sample/ZI24_plugincfg.json --outpath ZI24.png
 ```
 
 ![tile_test5](asset/picture/tile_test5.png)
@@ -106,6 +108,7 @@ m2 --> c2
                 "${workspaceFolder}/src/**", 
                 "${workspaceFolder}/build_linux64/**", 
                 "${workspaceFolder}/depend/lua-5.4.7/src/**", 
+                "${workspaceFolder}/depend/cJSON-1.7.18/**", 
                 "${workspaceFolder}/depend/wxWidgets-3.2.6/include"
             ],
             "defines": ["__WXGTK__", "__LINUX__"],
@@ -158,6 +161,8 @@ m2 --> c2
 
 Implement these function for C decoder plugin, then export either struct `decoder` or function `get_decoder`, see `src/plugin.h` in detail.  
 
+Here's the workflow for the plugin `open -> (sendui) -> ||(recvui) -> (pre) -> decode -> (post) :|| -> close`.  
+
 ``` C
 
 struct tile_decoder_t
@@ -172,12 +177,23 @@ struct tile_decoder_t
     REQUIRED CB_decode_pixels decodeall; // decode all pixels (if not find decodeall, it will use decodeone)
     OPTIONAL CB_decode_parse pre; // before decoding whole tiles (usually make some tmp values here)
     OPTIONAL CB_decode_parse post; // after decoding whole tiles(usually clean some tmp values here)
-    OPTIONAL CB_decode_config setui; // for setting ui widget
-    OPTIONAL CB_decode_config getui; // for getting ui widget
+    OPTIONAL CB_decode_send sendui; // for setting ui widget (it will search xxx.json at first, if not found, use this)
+    OPTIONAL CB_decode_recv recvui; // for getting ui widget
 };
 ```
 
-For example, to built plugin `asset/util_stb.c`
+plugincfg example in built-in
+
+```json
+{
+"plugincfg": [
+    {"name" : "endian", "type": "enum", 
+    "options":["little", "big"], 
+    "value": 1}]
+}
+```
+
+extern c module example `asset/util_stb.c`
 
 ``` sh
 mkdir -p build_mingw64/plugin
@@ -388,7 +404,7 @@ chmod +x script/*.sh
   * [x] select and render tiles in real time when format changes
   * [x] scale render tile images (zoom in/out) ([v0.1.5](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
   * [ ] color palette load, save editor  (partly sovled by plugin)
-  * [ ] plugin can add property to left menu
+  * [x] plugin can add property to left menu ([v0.3.4](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.4))
 
 * Build
   * [x] use github action to auto build ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))
@@ -404,4 +420,5 @@ chmod +x script/*.sh
 
 [wxWidget](https://www.wxwidgets.org/)  
 [Lua](https://www.lua.org/)  
+[cJSON](https://github.com/DaveGamble/cJSON)  
 [CrystalTile2](https://www.gamebrew.org/wiki/CrystalTile2)  

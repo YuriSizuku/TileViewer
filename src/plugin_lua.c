@@ -377,5 +377,5 @@ struct tile_decoder_t g_decoder_lua = {
     .open = decode_open_lua, .close = decode_close_lua, 
     .decodeone = decode_pixel_lua, .decodeall = NULL, 
     .pre=decode_pre_lua, .post=decode_post_lua, 
-    .setui=NULL, .getui=NULL, 
+    .sendui=NULL, .recvui=NULL, 
 };

@@ -21,25 +21,27 @@ std::map<wxString, struct tile_decoder_t> g_builtin_plugin_map = {
     std::pair<wxString, struct tile_decoder_t>("default plugin",  g_decoder_default)
 }; 
 
+extern void SetTilecfg(wxString& text, struct tilecfg_t &cfg);
+
+bool TileSolver::LoadDecoder()
+{
+    return LoadDecoder(m_pluginfile);
+}
+
 bool TileSolver::LoadDecoder(wxFileName pluginfile)
 {
     struct tile_decoder_t *decoder = nullptr;
     PLUGIN_STATUS status;
     
+    // try to find decoder
     auto it = g_builtin_plugin_map.find(pluginfile.GetFullName());
-    if(it != g_builtin_plugin_map.end()) // built-in decode
+    if(it != g_builtin_plugin_map.end()) // built-in decoder
     {
         decoder = &it -> second; 
         const char *name = it->first.c_str().AsChar();
         status = decoder->open(name, &decoder->context);
-        if(!PLUGIN_SUCCESS(status)) 
-        {
-            wxLogError(wxString::Format(
-                "[TileSolver::LoadDecoder] builtin %s open failed, msg: \n    %s", name, decoder->msg));
-            return false;
-        }
     }
-    else if(pluginfile.GetExt()=="lua")  // lua decode
+    else if(pluginfile.GetExt()=="lua")  // lua decoder
     {
         decoder = &g_decoder_lua;
         auto filepath = pluginfile.GetFullPath();
@@ -52,13 +54,8 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
         wxString luastr;
         f.ReadAll(&luastr);
         status = decoder->open(luastr.c_str().AsChar(), &decoder->context);
-        if(!PLUGIN_SUCCESS(status)) 
-        {
-            wxLogError("[TileSolver::LoadDecoder] lua %s, decoder->open failed, msg: \n    %s", filepath, decoder->msg);
-            return false;
-        }
     }
-    else if ("." + pluginfile.GetExt() == wxDynamicLibrary::GetDllExt()) // load c module
+    else if ("." + pluginfile.GetExt() == wxDynamicLibrary::GetDllExt()) // c module decoder
     {
         auto filepath = pluginfile.GetFullPath();
         if(m_cmodule.IsLoaded()) m_cmodule.Unload();
@@ -71,10 +68,7 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
         if(!decoder) // try to find function get_decoder
         {
             auto get_decoder = (API_get_decoder)m_cmodule.GetSymbol("get_decoder");
-            if(get_decoder)
-            {
-                decoder = get_decoder();
-            }
+            if(get_decoder) decoder = get_decoder();
         }
         if(!decoder)
         {
@@ -83,19 +77,20 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
             return false;
         }
         status = decoder->open(m_pluginfile.GetFullName().mb_str(), &decoder->context);
-        if(!PLUGIN_SUCCESS(status)) 
-        {
-            wxLogError("[TileSolver::LoadDecoder] lua %s, decoder->open failed, msg: \n    %s", filepath, decoder->msg);
-            return false;
-        }
     }
+
+    // check decoder status
     if (!decoder) 
     {
         wxLogError("[TileSolver::LoadDecoder] can not find %s", pluginfile.GetFullName());
         return false;
     }
-
-    // find decoder successful
+    if(!PLUGIN_SUCCESS(status)) 
+    {
+        wxLogError(wxString::Format(
+            "[TileSolver::LoadDecoder] %s open failed, msg: \n    %s", pluginfile.GetFullName(), decoder->msg));
+        return false;
+    }
     if(decoder->msg && decoder->msg[0])
     {
         wxLogMessage("[TileSolver::LoadDecoder] %s decoder->open msg: \n    %s", pluginfile.GetFullName(), decoder->msg);
@@ -104,8 +99,47 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
     {
         wxLogMessage("[TileSolver::LoadDecoder] %s", pluginfile.GetFullName());
     }
+
+    // check for ui setting if need
+    if(!m_plugincfgfile.GetFullPath().Length())
+    {
+        m_plugincfgfile = pluginfile;
+        m_plugincfgfile.ClearExt();
+        m_plugincfgfile.SetExt("json");
+    }
+    wxString wxtext;
+    wxFile f(m_plugincfgfile.GetFullPath());
+    if(f.IsOpened())
+    {
+        f.ReadAll(&wxtext);
+        f.Close();
+        wxLogMessage(wxString::Format(
+            "[TileSolver::LoadDecoder] load config from %s", m_plugincfgfile.GetFullPath()));
+    }
+    else if(decoder->sendui)
+    {
+        const char *text = nullptr;
+        size_t textsize = 0;
+        decoder->sendui(decoder->context, &text, &textsize);
+        wxtext.Append(text);
+        if(decoder->msg)
+        {
+            wxLogMessage("[TileSolver::LoadDecoder] %s decoder->sendui msg: \n    %s", 
+                m_pluginfile.GetFullName(), decoder->msg);
+        }
+    }
+    ::SetTilecfg(wxtext, g_tilecfg);
+    if(wxGetApp().m_usegui)
+    {
+        wxGetApp().m_configwindow->SetPlugincfg(wxtext);
+        NOTIFY_UPDATE_TILECFG();
+        NOTIFY_UPDATE_TILENAV();
+    }
+   
+    // unload old decoder and use new decoder
     if(m_decoder) UnloadDecoder();
     m_decoder = decoder;
+    
     return true;
 }
 
@@ -120,6 +154,11 @@ bool TileSolver::UnloadDecoder()
                 m_pluginfile.GetFullName(), m_decoder->msg);
         }
         m_decoder = nullptr;
+        m_plugincfgfile = wxString();
+        if(wxGetApp().m_usegui)
+        {
+            wxGetApp().m_configwindow->ClearPlugincfg();
+        }
     }
     if(m_cmodule.IsLoaded())
     {
@@ -210,8 +249,33 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
         m_tiles.clear();
         return -1;
     }
+    if(decoder->recvui)
+    {
+        wxString cfg;
+        if(wxGetApp().m_usegui)
+        {
+            cfg = wxGetApp().m_configwindow->GetPlugincfg();
+        }
+        else
+        {
+            wxFile f(m_plugincfgfile.GetFullPath());
+            if(f.IsOpened())
+            {
+                f.ReadAll(&cfg);
+                f.Close();
+                wxLogMessage(wxString::Format(
+                    "[TileSolver::Decode] load config from %s", m_plugincfgfile.GetFullPath()));
+            }
+        }
+        decoder->recvui(decoder->context, cfg.mb_str(), cfg.size());
+        if(decoder->msg)
+        {
+            wxLogMessage("[TileSolver::Decode] %s decoder->recvui msg: \n    %s", 
+                m_pluginfile.GetFullName(), decoder->msg);
+        }
+    }
 
-    // pre processing
+    // pre processing    
     if(!m_filebuf.GetDataLen()) return 0;
     PLUGIN_STATUS status;
     size_t start = m_tilecfg.start;
@@ -259,7 +323,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
                 for(int pixeli=0; pixeli < m_tilecfg.fmt.w * m_tilecfg.fmt.h; pixeli++)
                 {
                     memcpy(rgbdata + pixeli*3, (void*)(pixels + pixeli), 3);
-                    adata[pixeli] = pixels[pixeli].a; // alpah is seperate channel
+                    adata[pixeli] = pixels[pixeli].a; // alpah is in seperate channel
                 }
             }
         }
@@ -284,7 +348,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
                         }
                         auto pixeli = y * m_tilecfg.w  + x;
                         memcpy(rgbdata + pixeli*3, &pixel, 3);
-                        adata[pixeli] = pixel.a; // alpah is seperate channel
+                        adata[pixeli] = pixel.a; // alpah is in seperate channel
                     }
                 }
             }

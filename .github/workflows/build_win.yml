@@ -82,11 +82,13 @@ jobs:
         if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
           mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_win.exe
         fi
+        cd asset; 7z a plugin.zip plugin ; cd ..
+        mv asset/plugin.zip plugin.zip 
       
     - name: create release
       uses: ncipollo/release-action@v1
       if: github.event_name == 'push'
       with:
-        artifacts: "TileViewer_*.exe"
+        artifacts: "TileViewer_*.exe,plugin.zip"
         allowUpdates: "true"
         token: ${{ secrets.GITHUB_TOKEN }}

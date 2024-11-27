@@ -1,8 +1,8 @@
 IDI_ICON1 ICON "icon1.ico"
 
 1 VERSIONINFO
-FILEVERSION     0,3,3,0
-PRODUCTVERSION  0,3,3,0
+FILEVERSION     0,3,4,0
+PRODUCTVERSION  0,3,4,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
@@ -10,11 +10,11 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "YuriSizuku"
       VALUE "FileDescription", "A cross platform tool to view and analyze tiles or textures"
-      VALUE "FileVersion", "v0.3.3"
+      VALUE "FileVersion", "v0.3.4"
       VALUE "InternalName", "TileViewer"
       VALUE "OriginalFilename", "TileViewer.exe"
       VALUE "ProductName", "TileViewer"
-      VALUE "ProductVersion", "v0.3.3"
+      VALUE "ProductVersion", "v0.3.4"
     END
   END
   BLOCK "VarFileInfo"

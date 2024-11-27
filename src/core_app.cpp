@@ -22,7 +22,9 @@ static const wxCmdLineEntryDesc s_cmd_desc[] =
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_OPTION, "o", "outpath", "outpath for decoded file",
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_OPTION, "p", "plugin", "use lua plugin to decode",
+    { wxCMD_LINE_OPTION, "p", "plugin", "use extern plugin to decode",
+        wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_OPTION, "", "plugincfg", "select plugin cfg path",
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_OPTION, "", "start", "tile start offset",
         wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL },
@@ -60,6 +62,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser& parser)
     if(parser.Found("inpath", &val)) m_tilesolver.m_infile = val;
     if(parser.Found("outpath", &val)) m_tilesolver.m_outfile = val;
     if(parser.Found("plugin", &val)) m_tilesolver.m_pluginfile = val;
+    if(parser.Found("plugincfg", &val)) m_tilesolver.m_plugincfgfile = val;
     if(parser.Found("start", &num)) g_tilecfg.start = num;
     if(parser.Found("size", &num)) g_tilecfg.size = num;
     if(parser.Found("nrow", &num)) g_tilecfg.nrow = num;
@@ -142,6 +145,11 @@ bool MainApp::Gui(wxString cmdline)
     frame->Show(true);
 
     // try to open and decode
+    if(m_tilesolver.m_pluginfile.GetFullPath().Length())
+    {
+        m_tilesolver.m_pluginfile = m_pluginfiles[m_pluginindex];
+    }
+    m_tilesolver.LoadDecoder();
     if(m_tilesolver.m_infile.Exists())
     {
         m_tilesolver.Open();

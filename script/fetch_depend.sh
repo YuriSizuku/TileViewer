@@ -24,6 +24,19 @@ function fetch_wxwidgets()
     fi
 }
 
+function fetch_cjson()
+{
+    CJSON_VERSION=1.7.18
+    CJSON_NAME=cJSON-${CJSON_VERSION}
+    CJSON_DIR=depend/$CJSON_NAME
+    if ! [ -d "$CJSON_DIR" ]; then
+        echo "## fetch_cjson $CJSON_NAME"
+        curl -fsSL https://github.com/DaveGamble/cJSON/archive/refs/tags/v$CJSON_VERSION.zip -o depend/$CJSON_NAME.zip
+        mkdir -p $CJSON_DIR
+        7z x depend/$CJSON_NAME.zip -odepend
+    fi
+}
+
 function fetch_stb()
 {
     STB_VERSION=lastest
@@ -31,8 +44,8 @@ function fetch_stb()
     STB_DIR=depend/$STB_NAME
     if ! [ -d "$STB_DIR" ]; then
         echo "## fetch_stb $STB_NAME"
-        curl -fsSL https://github.com/nothings/stb/archive/refs/heads/master.zip -o depend/$STB_NAME.7z
-        7z x depend/$STB_NAME.7z
+        curl -fsSL https://github.com/nothings/stb/archive/refs/heads/master.zip -o depend/$STB_NAME.zip
+        7z x depend/$STB_NAME.zip
         mv -f stb-master $STB_DIR
     fi
 }

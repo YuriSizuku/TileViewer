@@ -69,6 +69,9 @@ class ConfigWindow : public wxPanel
 public:
     void LoadTilecfg(struct tilecfg_t &cfg);
     void SaveTilecfg(struct tilecfg_t &cfg);
+    void SetPlugincfg(wxString &text);
+    wxString GetPlugincfg();
+    void ClearPlugincfg();
 
     ConfigWindow(wxWindow* parent);
     wxPropertyGrid* m_pg;

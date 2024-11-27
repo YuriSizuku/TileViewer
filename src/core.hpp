@@ -7,7 +7,7 @@
 #include <wx/dynlib.h>
 #include "plugin.h"
 
-#define APP_VERSION "v0.3.3"
+#define APP_VERSION "v0.3.4"
 
 extern struct tilecfg_t g_tilecfg;
 
@@ -19,6 +19,7 @@ class TileSolver
 
 public: 
     TileSolver();
+    bool LoadDecoder();
     bool LoadDecoder(wxFileName pluginfile);
     bool UnloadDecoder();
     
@@ -36,6 +37,7 @@ public:
     wxDynamicLibrary m_cmodule;
     wxFileName m_infile, m_outfile;
     wxFileName m_pluginfile;
+    wxFileName m_plugincfgfile;
     wxMemoryBuffer m_filebuf;
     wxVector<wxImage> m_tiles; // use wxImage to store tiles, because wxBitmap hard to set pixel
     wxBitmap m_bitmap;

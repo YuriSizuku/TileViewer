@@ -19,6 +19,7 @@ echo "## docker_build=${docker_build}"
 mkdir -p depend
 source script/fetch_depend.sh 
 fetch_lua
+fetch_cjson
 fetch_wxwidgets
 
 # build docker image and runner

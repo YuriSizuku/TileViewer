@@ -1,6 +1,20 @@
 /**
  * defines some structue or values for plugin
  *   developed by devseed
+ * 
+ *  workflow:
+ *      open -> (sendui) -> ||(recvui) -> (pre) -> decode -> (post) :|| -> close
+ * 
+ *  property format:
+ *      (declear config either by sendui or xxx.json file)
+ *   {
+ *       "name": "xxx plugin", 
+ *       "description": "plugin for xxx", 
+ *       "version": "v0.3.4", 
+ *       "plugincfg" : ["name": "", "type": "enum|string|int|bool", 
+ *                     "options": ["option1", "options2"], "help": "option help" 
+ *                     "value"="current setting"]
+ *   }
  */
 
 #ifndef _PLUGIN_H
@@ -158,11 +172,16 @@ typedef PLUGIN_STATUS (*CB_decode_pixels)(void *context,
  */
 typedef PLUGIN_STATUS (*CB_decode_parse)(void *context, 
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg);
+
 /**
- * make config widget to main ui, or get config from main ui
+ * send to the main ui
  */
-typedef PLUGIN_STATUS (*CB_decode_config)(void *context, 
-    char *jsonstr, size_t jsonsize);
+typedef PLUGIN_STATUS (*CB_decode_send)(void *context, const char **buf, size_t *bufsize);
+
+/**
+ * recive from the main ui
+ */
+typedef PLUGIN_STATUS (*CB_decode_recv)(void *context, const char *buf, size_t bufsize);
 
 /**
  * interface for C plugin
@@ -179,8 +198,8 @@ struct tile_decoder_t
     REQUIRED CB_decode_pixels decodeall; // decode all pixels (if not find decodeall, it will use decodeone)
     OPTIONAL CB_decode_parse pre; // before decoding whole tiles (usually make some tmp values here)
     OPTIONAL CB_decode_parse post; // after decoding whole tiles(usually clean some tmp values here)
-    OPTIONAL CB_decode_config setui; // for setting ui widget
-    OPTIONAL CB_decode_config getui; // for getting ui widget
+    OPTIONAL CB_decode_send sendui; // for setting ui widget (it will search xxx.json at first, if not found, use this)
+    OPTIONAL CB_decode_recv recvui; // for getting ui widget
 };
 
 /**

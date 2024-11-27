@@ -147,5 +147,5 @@ EXPORT struct tile_decoder_t decoder = {
     .open = decode_open, .close = decode_close, 
     .decodeone = NULL,  .decodeall = decode_pixels,  // this example use decode_pixels
     .pre = decode_pre, .post=decode_post, 
-    .setui=NULL, .getui=NULL, 
+    .sendui=NULL, .recvui=NULL, 
 };

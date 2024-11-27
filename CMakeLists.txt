@@ -36,6 +36,7 @@ function(config_platform TARGET_NAME)
         endif()
         target_link_libraries(${PROJECT_NAME} PRIVATE
             lua
+            cjson
         )
         target_compile_definitions(${TARGET_NAME} PRIVATE
             -D__APPLE__
@@ -67,6 +68,14 @@ endif()
 # add lua
 set(LUA_CODE_DIR depend/lua-5.4.7)
 add_subdirectory(${LUA_CODE_DIR})
+
+# add cjson
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(ENABLE_CJSON_TEST OFF)
+set(ENABLE_CUSTOM_COMPILER_FLAGS OFF)
+set(BUILD_SHARED_LIBS OFF)
+set(CJSON_CODE_DIR depend/cJSON-1.7.18)
+add_subdirectory(${CJSON_CODE_DIR})
 
 # add wxwidgets
 set(WXWIDGETS_CODE_DIR depend/wxWidgets-3.2.6)
@@ -112,11 +121,13 @@ add_executable(${PROJECT_NAME}
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${LUA_CODE_DIR}/src
+    ${CJSON_CODE_DIR}
 )
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin")
     # find_package(OpenMP REQUIRED)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         lua
+        cjson
         wx::core
         wx::base
         wx::propgrid
