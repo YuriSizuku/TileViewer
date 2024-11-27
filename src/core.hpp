@@ -22,9 +22,10 @@ public:
     bool LoadDecoder();
     bool LoadDecoder(wxFileName pluginfile);
     bool UnloadDecoder();
+    wxString LoadPlugincfg();
     
     size_t Open(wxFileName infile = wxFileName()); // file -> m_filebuf
-    int Decode(struct tilecfg_t *cfg, wxFileName pluginfile = wxFileName()); // m_filebuf -> m_tiles
+    int Decode(struct tilecfg_t *tilecfg, wxFileName pluginfile = wxFileName()); // m_filebuf -> m_tiles
     bool Render(); // m_tiles -> m_bitmap
     bool Save(wxFileName outfile = wxFileName()); // m_bitmap -> outfile
     bool Close();

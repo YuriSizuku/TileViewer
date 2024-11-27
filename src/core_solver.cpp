@@ -21,7 +21,7 @@ std::map<wxString, struct tile_decoder_t> g_builtin_plugin_map = {
     std::pair<wxString, struct tile_decoder_t>("default plugin",  g_decoder_default)
 }; 
 
-extern void SetTilecfg(wxString& text, struct tilecfg_t &cfg);
+extern void SetTilecfg(wxString& text, struct tilecfg_t &tilecfg);
 
 bool TileSolver::LoadDecoder()
 {
@@ -107,16 +107,8 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
         m_plugincfgfile.ClearExt();
         m_plugincfgfile.SetExt("json");
     }
-    wxString wxtext;
-    wxFile f(m_plugincfgfile.GetFullPath());
-    if(f.IsOpened())
-    {
-        f.ReadAll(&wxtext);
-        f.Close();
-        wxLogMessage(wxString::Format(
-            "[TileSolver::LoadDecoder] load config from %s", m_plugincfgfile.GetFullPath()));
-    }
-    else if(decoder->sendui)
+    wxString wxtext = LoadPlugincfg(); // find config at first
+    if(!wxtext.Length() && decoder->sendui)
     {
         const char *text = nullptr;
         size_t textsize = 0;
@@ -128,7 +120,7 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
                 m_pluginfile.GetFullName(), decoder->msg);
         }
     }
-    ::SetTilecfg(wxtext, g_tilecfg);
+    ::SetTilecfg(wxtext, g_tilecfg); // plugin config can have 
     if(wxGetApp().m_usegui)
     {
         wxGetApp().m_configwindow->SetPlugincfg(wxtext);
@@ -139,6 +131,7 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
     // unload old decoder and use new decoder
     if(m_decoder) UnloadDecoder();
     m_decoder = decoder;
+    m_tilecfg = g_tilecfg;
     
     return true;
 }
@@ -165,6 +158,21 @@ bool TileSolver::UnloadDecoder()
         m_cmodule.Unload();
     }
     return true;
+}
+
+wxString TileSolver::LoadPlugincfg()
+{
+    wxString wxtext;
+    wxFile f(m_plugincfgfile.GetFullPath());
+    if(f.IsOpened())
+    {
+        f.ReadAll(&wxtext);
+        f.Close();
+        wxLogMessage(wxString::Format(
+            "[TileSolver::LoadPlugincfg] load config from %s", 
+            m_plugincfgfile.GetFullPath()));
+    }
+    return wxtext;
 }
 
 TileSolver::TileSolver()
@@ -229,10 +237,10 @@ size_t TileSolver::Open(wxFileName infile)
     return readsize;
 }
 
-int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
+int TileSolver::Decode(struct tilecfg_t *tilecfg, wxFileName pluginfile)
 {
     m_bitmap = wxBitmap(); // disable render bitmap while decode
-    if(cfg) m_tilecfg = *cfg;
+    if(tilecfg) m_tilecfg = *tilecfg;
     if(pluginfile.GetFullPath().Length() > 0) 
     {
         if(m_decoder) UnloadDecoder();
@@ -251,23 +259,10 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     }
     if(decoder->recvui)
     {
-        wxString cfg;
-        if(wxGetApp().m_usegui)
-        {
-            cfg = wxGetApp().m_configwindow->GetPlugincfg();
-        }
-        else
-        {
-            wxFile f(m_plugincfgfile.GetFullPath());
-            if(f.IsOpened())
-            {
-                f.ReadAll(&cfg);
-                f.Close();
-                wxLogMessage(wxString::Format(
-                    "[TileSolver::Decode] load config from %s", m_plugincfgfile.GetFullPath()));
-            }
-        }
-        decoder->recvui(decoder->context, cfg.mb_str(), cfg.size());
+        wxString wxtext;
+        if(!wxGetApp().m_usegui) wxtext = LoadPlugincfg(); // no gui, the config will not change
+        else wxtext = wxGetApp().m_configwindow->GetPlugincfg();
+        decoder->recvui(decoder->context, wxtext.mb_str(), wxtext.size());
         if(decoder->msg)
         {
             wxLogMessage("[TileSolver::Decode] %s decoder->recvui msg: \n    %s", 
@@ -286,7 +281,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     auto time_start = wxDateTime::UNow();
     if(decoder->pre)
     {
-        status = decoder->pre(context, rawdata, rawsize, &g_tilecfg);
+        status = decoder->pre(context, rawdata, rawsize, tilecfg);
         if(decoder->msg && decoder->msg[0])
         {
             wxLogMessage("[TileSolver::Decode] decoder->pre msg: \n    %s", decoder->msg);
@@ -298,7 +293,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
             m_tiles.clear();
             return -1;
         }
-        m_tilecfg = g_tilecfg; // the pre process can change tilecfg
+        m_tilecfg = *tilecfg; // the pre process can change tilecfg
     }
     
     // decoding
@@ -366,7 +361,7 @@ int TileSolver::Decode(struct tilecfg_t *cfg, wxFileName pluginfile)
     // post processing
     if(decoder->post)
     {
-        status = decoder->post(decoder->context, rawdata, rawsize, &g_tilecfg);
+        status = decoder->post(decoder->context, rawdata, rawsize, tilecfg);
         if(!PLUGIN_SUCCESS(status))
         {
             wxLogWarning("[TileSolver::Decode] decoder->post %s", decode_status_str(status));
