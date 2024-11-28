@@ -11,15 +11,23 @@
 static char s_msg[4096] = {0};
 static const char* s_ui = 
 "{\"name\" : \"plugin_default\",\
-\"plugincfg\" : [{\
-    \"name\" : \"endian\",\
-    \"type\" : \"enum\",\
-    \"help\" : \"the bit sequence\",\
-    \"options\" : [\"little\", \"big\"],\
-    \"value\": 0}\
-    ]}"; 
+\"plugincfg\" : [\
+    {\"name\" : \"endian\",\"type\" : \"enum\", \"help\" : \"the bit sequence\", \"options\" : [\"little\", \"big\"], \"value\": 0}, \
+    {\"name\" : \"channel argb\",\"type\" : \"bool\", \"help\" : \"argb or abgr\", \"value\": 0}, \
+    {\"name\" : \"channel bgr\",\"type\" : \"bool\", \"help\" : \"use bgr sequence\", \"value\": 0}, \
+    {\"name\" : \"flipx\",\"type\" : \"bool\", \"help\" : \"horizon flip tile\", \"value\": 0}, \
+    {\"name\" : \"flipy\",\"type\" : \"bool\", \"help\" : \"vertical flip tile\", \"value\": 0} \
+]}"; 
 
-static bool s_big_endian = false;
+static struct
+{
+    bool endian_big;
+    bool channel_argb; 
+    bool channel_abgr;
+    bool flipx;
+    bool flipy;
+}s_plugincfg = {.endian_big=false, .channel_argb=false, 
+    .channel_abgr=false, .flipx=false, .flipy=false};
 
 PLUGIN_STATUS decode_open_default(const char *name, void **context)
 {
@@ -65,11 +73,27 @@ PLUGIN_STATUS decode_recvui_default(void *context, const char *buf, size_t bufsi
         const cJSON *value = cJSON_GetObjectItem(prop, "value");
         if(!name) continue;
         if(!value) continue;
+        sprintf(s_msg, "%s, %s=%d", s_msg, name->valuestring, s_plugincfg.endian_big);
         if(!strcmp(name->valuestring, "endian"))
         {
-            s_big_endian = value->valueint > 0;
-            sprintf(s_msg, "%s, bigendian=%d", s_msg, s_big_endian);
-        } 
+            s_plugincfg.endian_big = value->valueint > 0;
+        }
+        else if (!strcmp(name->valuestring, "channel argb"))
+        {
+            s_plugincfg.channel_argb = value->valueint > 0;
+        }
+        else if (!strcmp(name->valuestring, "channel bgr"))
+        {
+            s_plugincfg.channel_abgr = value->valueint > 0;
+        }
+        else if (!strcmp(name->valuestring, "flipx"))
+        {
+            s_plugincfg.flipx = value->valueint > 0;
+        }
+        else if (!strcmp(name->valuestring, "flipy"))
+        {
+            s_plugincfg.flipy = value->valueint > 0;
+        }
     }
 
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
@@ -102,6 +126,19 @@ PLUGIN_STATUS decode_pixel_default(void *context,
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
     struct pixel_t *pixel, bool remain_index)
 {
+    if(s_plugincfg.flipx)
+    {
+        int x = pos->x;
+        x = fmt->w -1 - x;
+        ((struct tilepos_t *)pos)->x = x;
+    }
+    if(s_plugincfg.flipy)
+    {
+        int y = pos->y;
+        y = fmt->h -1 - y;
+        ((struct tilepos_t *)pos)->y = y;
+    }
+
     // find decode offset 
     uint8_t bpp = fmt->bpp;
     size_t offset = 0;
@@ -134,6 +171,15 @@ PLUGIN_STATUS decode_pixel_default(void *context,
                 pixel->a = 255;
             }
         }
+        if(s_plugincfg.channel_abgr)
+        {
+            uint8_t tmp;
+            tmp = pixel->r; pixel->r = pixel->b; pixel->b = tmp;
+        }
+        if(s_plugincfg.channel_argb)
+        {
+            pixel->d = ((pixel->d)<<8) + pixel->a;
+        }
     }
     else
     {
@@ -148,13 +194,13 @@ PLUGIN_STATUS decode_pixel_default(void *context,
             int pixel_idx = pos->x + pos->y * fmt->w;
             offset =  pos->i * nbytes + pixel_idx / 8 * 3; // offset is incresed by 3
             uint8_t bitshift = (pixel_idx % 8) * bpp; 
-            if(s_big_endian)
+            if(s_plugincfg.endian_big)
             {
                 bitshift = 21 - bitshift; // bit big endian, 00011122 23334445 55666777
             }
             uint32_t mask = ((1<<bpp) - 1) << bitshift; 
             uint32_t d3 = *(uint32_t*)(data + offset) & 0x00ffffff;
-            if(s_big_endian)
+            if(s_plugincfg.endian_big)
             {
                 d3 = ((d3 & 0xFF) << 16) | ((d3 & 0xFF00)) | ((d3 & 0xFF0000) >> 16); // reverse byte sequence
             }
@@ -164,7 +210,7 @@ PLUGIN_STATUS decode_pixel_default(void *context,
         {
             int pixel_idx = pos->x + pos->y * fmt->w;
             uint8_t bitshift = (pixel_idx % (8 / bpp)) * bpp; 
-            if(s_big_endian)
+            if(s_plugincfg.endian_big)
             {
                 bitshift = 8 - bpp  - bitshift;
             }

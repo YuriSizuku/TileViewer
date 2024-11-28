@@ -390,13 +390,17 @@ chmod +x script/*.sh
   * [x] redirect log message to log window
   * [x] implement command lines  
   * [x] decoder interface with different plugin (builtin, lua, C)
+  * [x] automaticaly reload the plugin when it changes ([v0.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.2))
+  * [x] use json to transfer infromation from ui to decoder
+
+* Plugin
   * [x] plugin built-in decoder, ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
     * [x] 2|4|8 bpp, little endian
     * [x] 3bpp (3 bytes for 8 pixels) ([v0.3.3.7](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.7))
     * [x] 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)  
-  * [x] plugin lua decoder api implement ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
-  * [x] plugin C decoder (dll, implement) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
-  * [x] automaticaly reload the plugin when it changes ([v0.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.2))
+    * [x] plugincfg, endian, channel_first, bgr, flip ([v0.3.4.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.7))
+  * [x] plugin lua decoder ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
+  * [x] plugin C decoder (dll, so) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
 
 * UI
   * [x] start up with hello world, cmake structure for the project  

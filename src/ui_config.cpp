@@ -104,7 +104,8 @@ void ConfigWindow::SetPlugincfg(wxString& text)
             else if(!strcmp(type->valuestring, "bool"))
             {
                 wxprop = new wxBoolProperty(name->valuestring);
-                if(value) wxprop->SetValue(value->valuestring);
+                wxprop->SetAttribute(wxPG_BOOL_USE_CHECKBOX, true);
+                if(value) wxprop->SetValue(value->valueint);
             }
 
             if(wxprop) 
@@ -162,7 +163,7 @@ ConfigWindow::ConfigWindow(wxWindow* parent)
     auto pg = new wxPropertyGrid(this, wxID_ANY, 
         wxDefaultPosition, wxDefaultSize,
         wxPG_SPLITTER_AUTO_CENTER | wxPG_DEFAULT_STYLE);
-     m_pg = pg;
+    m_pg = pg;
     sizer->Add(pg, 1, wxEXPAND, 0);
     this->SetSizer(sizer);
 
