@@ -404,7 +404,8 @@ chmod +x script/*.sh
   * [x] select and render tiles in real time when format changes
   * [x] scale render tile images (zoom in/out) ([v0.1.5](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
   * [ ] color palette load, save editor  (partly sovled by plugin)
-  * [x] plugin can add property to left menu ([v0.3.4](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.4))
+  * [x] cmodule plugincfg in left property ([v0.3.4](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.4))
+  * [x] lua plugincfg in left property ([v0.3.4.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.4.2))
 
 * Build
   * [x] use github action to auto build ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1))

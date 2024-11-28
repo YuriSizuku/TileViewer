@@ -73,6 +73,7 @@ PLUGIN_STATUS decode_recvui_default(void *context, const char *buf, size_t bufsi
     }
 
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    cJSON_Delete(root);
     return STATUS_OK;
 
 decode_recvui_default_fail:

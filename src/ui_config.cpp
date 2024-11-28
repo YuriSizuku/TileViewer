@@ -3,6 +3,7 @@
  *   developed by devseed
  */
 
+#include <cstring>
 #include <wx/wx.h>
 #include <cJSON.h>
 #include "ui.hpp"

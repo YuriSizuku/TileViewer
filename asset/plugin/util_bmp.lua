@@ -1,57 +1,7 @@
----@diagnostic disable : lowercase-global
----@diagnostic disable : undefined-global
----@diagnostic disable : duplicate-doc-field
+---@diagnostic disable : lowercase-global, missing-fields, undefined-global, duplicate-doc-field
 
-version = "v0.1"
+version = "v0.1.1"
 description = "[lua_util_bmp::init] lua plugin to decode bmp format2"
-
--- c types declear
----@class tilecfg_t
----@field start integer
----@field size integer
----@field nrow integer
----@field w integer
----@field h integer
----@field bpp integer
----@field nbytes integer
-
----@class tilenav_t
----@field start integer
----@field offset integer
----@field scrollto boolean
-
----@class tilenstyle_t
----@field style integer
----@field scale integer
----@field reset_scale boolean
-
--- capis declear 
-log = log -- use log(...) to redirect to log window
-
----@type fun() : tilecfg_t
-function get_tilecfg() return {} end -- capi
-
----@type fun(tilecfg_t)
-function set_tilecfg(cfg) end -- capi
-
----@type fun() : tilenav_t
-function get_tilenav() return {} end -- capi
-
----@type fun(tilenav_t)
-function set_tilenav(nav) end -- capi
-
----@type fun() : tilenstyle_t
-function get_tilestyle() return {} end -- capi
-
----@type fun(tilenstyle_t)
-function set_tilestyle(style) end -- capi
-
----@type fun(): integer
-function get_rawsize() return 0 end -- capi
-
--- get tiles bytes, usually used in decode_pre, and then use this to decode pixel
----@type fun(offset:integer, size: integer): string
-function get_rawdata(offset, size) return "" end --capi
 
 -- global declear 
 --- @type string
@@ -63,7 +13,6 @@ g_bfOffbits = 0 -- bitmap data start position
 g_tilecfg = nil
 
 -- c callbacks implement
----@type fun() : boolean 
 function decode_pre() -- callback for pre process
     --- get neccessory data for decoding
     g_tilecfg = get_tilecfg()
@@ -90,7 +39,6 @@ function decode_pre() -- callback for pre process
     return true
 end
 
----@type fun( i: integer, x: integer, y: integer) : integer
 function decode_pixel(i, x, y) -- callback for decoding tile i, (x, y) position
     local bytes_per_pixel = g_tilecfg.bpp // 8
     local tilew = g_tilecfg.w
@@ -103,7 +51,6 @@ function decode_pixel(i, x, y) -- callback for decoding tile i, (x, y) position
     return r + (g << 8) + (b << 16) + (a << 24)
 end
 
----@type fun() : boolean 
 function decode_post() -- callback for post process
     log("[lua_util_bmp::post] decode finished")
     set_tilenav({index=0, offset=-1})

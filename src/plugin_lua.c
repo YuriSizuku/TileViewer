@@ -7,6 +7,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+#include <cJSON.h>
 #include "plugin.h"
 
 static char s_msg[4096] = {'\0'};
@@ -302,6 +303,79 @@ PLUGIN_STATUS decode_close_lua(void *context)
     return STATUS_OK;
 }
 
+PLUGIN_STATUS decode_sendui_lua(void *context, const char **buf, size_t *bufsize)
+{
+    s_msg[0] = '\0';
+    
+    lua_State *L = ((struct decode_context_t*) context)->L;
+    lua_getglobal(L, "decode_sendui");
+    if(!lua_isfunction(L, -1))
+    {
+        lua_pop(L, 1);
+        return STATUS_CALLBACKERROR;
+    }
+    lua_call(L, 0, 1);
+    *buf = lua_tolstring(L, -1, bufsize);
+    lua_pop(L, 1);
+
+    sprintf(s_msg, "[plugin_lua::sendui] send %zu bytes\n", *bufsize);
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+
+    return STATUS_OK;
+}
+
+PLUGIN_STATUS decode_recvui_lua(void *context, const char *buf, size_t bufsize)
+{
+    s_msg[0] = '\0';
+    sprintf(s_msg, "[plugin_lua::recvui] recv %zu bytes\n", bufsize);
+
+    lua_State *L = ((struct decode_context_t*) context)->L;
+    lua_getglobal(L, "decode_recvui");
+    if(!lua_isfunction(L, -1))
+    {
+        lua_pop(L, 1);
+        return STATUS_CALLBACKERROR;
+    }
+
+    cJSON *root = cJSON_Parse(buf);
+    if(!root) goto decode_recvui_lua_fail;
+    const cJSON* props = cJSON_GetObjectItem(root, "plugincfg");
+    const cJSON* prop = NULL;
+    if(!props) goto decode_recvui_lua_fail;
+    
+    int  i=1;
+    lua_newtable(L); // root
+    lua_newtable(L); // plugincfg
+    cJSON_ArrayForEach(prop, props)
+    {
+        const cJSON *name = cJSON_GetObjectItem(prop, "name");
+        const cJSON *value = cJSON_GetObjectItem(prop, "value");
+        if(!name) continue;
+        if(!value) continue;
+        lua_newtable(L);
+        lua_pushstring(L, name->valuestring);
+        lua_setfield(L, -2, "name");
+        if(value->type==cJSON_Number) lua_pushnumber(L, value->valuedouble);
+        else lua_pushstring(L, value->valuestring);
+        lua_setfield(L, -2, "value");
+        lua_seti(L, -2, i);
+        i++;
+    }
+    lua_setfield(L, -2, "plugincfg");
+    lua_call(L, 1, 1);
+    bool res = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    
+    cJSON_Delete(root);
+    return res ? STATUS_OK : STATUS_FAIL;
+
+decode_recvui_lua_fail:
+    cJSON_Delete(root);
+    return STATUS_FAIL;
+}
+
 // function decode_pixel(i, x, y)
 PLUGIN_STATUS decode_pixel_lua(void *context, 
     const uint8_t* data, size_t datasize,
@@ -377,5 +451,5 @@ struct tile_decoder_t g_decoder_lua = {
     .open = decode_open_lua, .close = decode_close_lua, 
     .decodeone = decode_pixel_lua, .decodeall = NULL, 
     .pre=decode_pre_lua, .post=decode_post_lua, 
-    .sendui=NULL, .recvui=NULL, 
+    .sendui=decode_sendui_lua, .recvui=decode_recvui_lua, 
 };
