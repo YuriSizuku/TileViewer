@@ -27,8 +27,9 @@ Usage: TileViewer [-n] [-i <str>] [-o <str>] [-p <str>]
   -n, --nogui         decode tiles without gui
   -i, --inpath=<str>  tile file inpath
   -o, --outpath=<str> outpath for decoded file
-  -p, --plugin=<str>  use lua plugin to decode
-  --plugincfg=<str>   use plugincfg, default is xxx.json with xxx plugin
+  -p, --plugin=<str>  plugin path to decode
+  --plugincfg=<str>   plugin config path (default pluginpath.json)
+  --pluginparam=<str> set the plugincfg values, for example {'name1': value1, 'name2': value2}
   --start=<num>       tile start offset
   --size=<num>        whole tile size
   --nrow=<num>        how many tiles in a row

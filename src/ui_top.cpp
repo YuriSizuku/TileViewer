@@ -32,7 +32,7 @@ TopFrame::TopFrame() :
     wxGetApp().SearchPlugins(pluginDir); // find decode plugins
     
     // file watcher
-    if(wxFileExists(pluginDir))
+    if(wxDirExists(pluginDir))
     {
         auto *filewatcher = new wxFileSystemWatcher();
         filewatcher->SetOwner(this);

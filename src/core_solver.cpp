@@ -187,24 +187,19 @@ TileSolver::TileSolver()
 size_t TileSolver::PrepareTilebuf()
 {
     size_t start = m_tilecfg.start;
-    size_t datasize = m_tilecfg.size - start;
+    size_t datasize = m_tilecfg.size;
     size_t nbytes = calc_tile_nbytes(&m_tilecfg.fmt);
     
     // check datasize avilable
-    if(!datasize) 
+    if(m_filebuf.GetDataLen() - start < 0)
     {
-        if(m_filebuf.GetDataLen() - start < 0)
-        {
-            wxLogError("[TileSolver::Decode] start(%u) is bigger than file (%zu)", 
-                        start, m_filebuf.GetDataLen());
-            return 0;
-        }
-        datasize = m_filebuf.GetDataLen() - start;
+        wxLogError("[TileSolver::Decode] start(%u) is bigger than file (%zu)", 
+                    start, m_filebuf.GetDataLen());
+        return 0;
     }
-    else 
-    {
-        datasize = wxMin<size_t, size_t>(datasize, m_filebuf.GetDataLen());
-    }
+
+    if(!datasize) datasize = m_filebuf.GetDataLen() - start;
+    else datasize = wxMin<size_t, size_t>(datasize, m_filebuf.GetDataLen() - start);
 
     // prepares tiles
     int ntile = datasize / nbytes;
