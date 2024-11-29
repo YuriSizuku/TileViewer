@@ -3,7 +3,9 @@
  *   developed by devseed
  */
 
+#include <cstdlib>
 #include <cstring>
+#include <map>
 #include <wx/wx.h>
 #include <cJSON.h>
 #include "ui.hpp"
@@ -36,6 +38,51 @@ void SetTilecfg(wxString& text, struct tilecfg_t &cfg)
         v = cJSON_GetObjectItem(prop, "nbytes"); if(v) cfg.nbytes = v->valueint;
         cJSON_Delete(root);
     }
+}
+
+/**
+ * override json value by text2
+ * @param jtext1 json text
+ * @param jtext2 {"name1": value1, "name2": value2}
+ */
+void OverridePluginCfg(wxString& jtext1, wxString& jtext2)
+{
+    if(!jtext1.Length() || !jtext2.Length()) return;
+
+    jtext2.Replace('\'', '"');
+    cJSON *root1 = cJSON_Parse(jtext1.mb_str());
+    if(!root1) return;
+    cJSON *root2 = cJSON_Parse(jtext2.mb_str());
+    if(!root2) {cJSON_Delete(root1); return;}
+
+    const cJSON* prop;
+    const cJSON* props = cJSON_GetObjectItem(root1, "plugincfg");
+    cJSON_ArrayForEach(prop, props)
+    {
+        const cJSON* name = cJSON_GetObjectItem(prop, "name");
+        const cJSON* type = cJSON_GetObjectItem(prop, "type");
+        cJSON* value = cJSON_GetObjectItem(prop, "value");
+        if(!name) continue;
+        if(!type) continue;
+
+        const cJSON* value2 = cJSON_GetObjectItem(root2, name->valuestring);
+        if(!value2) continue;
+        if(!strcmp(type->valuestring, "string"))
+        {
+            cJSON_SetValuestring(value, value2->valuestring);
+        }
+        else
+        {
+            value->type = value2->type;
+            value->valuedouble = value2->valuedouble;
+            value->valueint = value2->valueint;
+        }
+    }
+    jtext1.Clear();
+    jtext1.Append(cJSON_PrintUnformatted(root1));
+
+    cJSON_Delete(root1);
+    cJSON_Delete(root2);
 }
 
 void ConfigWindow::LoadTilecfg(struct tilecfg_t &cfg)

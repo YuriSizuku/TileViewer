@@ -43,9 +43,9 @@ Usage: TileViewer [-n] [-i <str>] [-o <str>] [-p <str>]
 command line example
 
 ```sh
-TileViewer --inpath ../asset/sample/it.bin --width 20 --height 18 --bpp 2 --nbytes 92 --outpath it.png
-TileViewer --inpath ../asset/sample/c005.spc.dec --plugin ../asset/plugin/narcissus_lbg_psp.lua --outpath c005.spc.png
-TileViewer --inpath ../asset/sample/ZI24.FNT --plugincfg ../asset/sample/ZI24_plugincfg.json --outpath ZI24.png
+TileViewer --width 20 --height 18 --bpp 2 --nbytes 92 --inpath ../asset/sample/it.bin --outpath it.png
+TileViewer --plugin ../asset/plugin/narcissus_lbg_psp.lua --inpath ../asset/sample/c005.spc.dec --outpath c005.spc.png
+TileViewer --width 24 --height 24 --bpp 2 --pluginparam "{'endian': 1}" --inpath ../asset/sample/ZI24.FNT --outpath ZI24.png
 ```
 
 ![tile_test5](asset/picture/tile_test5.png)
@@ -186,10 +186,10 @@ plugincfg example in built-in
 
 ```json
 {
-"plugincfg": [
-    {"name" : "endian", "type": "enum", 
-    "options":["little", "big"], 
-    "value": 1}]
+    "plugincfg": 
+    [
+        {"name" : "endian", "type": "enum", "options":["little", "big"], "value": 1}
+    ]
 }
 ```
 
@@ -301,6 +301,10 @@ sh -c "export CC=x86_64-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw64 BUILD_T
 
 # windows llvm-mingw x86 release
 sh -c "export CC=i686-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw32 BUILD_TYPE=MinSizeRel && script/build_mingw.sh"
+
+# windows llvm-mingw aarch64 debug
+sh -c "export CC=aarch64-w64-mingw32-clang WINDRES=aarch64-w64-mingw32-windres  BUILD_DIR=$(pwd)/build_mingwa64 BUILD_TYPE=Debug 
+&& script/build_mingw.sh"
 
 # linux mingw x64 debug
 export CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres BUILD_DIR=build_mingw64 && bash script/build_mingw.sh

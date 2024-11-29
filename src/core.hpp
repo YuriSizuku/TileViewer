@@ -39,6 +39,8 @@ public:
     wxFileName m_infile, m_outfile;
     wxFileName m_pluginfile;
     wxFileName m_plugincfgfile;
+    wxString m_pluginparam; // override default value for plugincfg
+    wxString m_plugincfg; 
     wxMemoryBuffer m_filebuf;
     wxVector<wxImage> m_tiles; // use wxImage to store tiles, because wxBitmap hard to set pixel
     wxBitmap m_bitmap;

@@ -22,6 +22,7 @@ std::map<wxString, struct tile_decoder_t> g_builtin_plugin_map = {
 }; 
 
 extern void SetTilecfg(wxString& text, struct tilecfg_t &tilecfg);
+extern void OverridePluginCfg(wxString& jtext, wxString& param);
 
 bool TileSolver::LoadDecoder()
 {
@@ -119,19 +120,19 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
             wxLogMessage("[TileSolver::LoadDecoder] %s decoder->sendui msg: \n    %s", 
                 m_pluginfile.GetFullName(), decoder->msg);
         }
+        OverridePluginCfg(wxtext, m_pluginparam);
     }
-    ::SetTilecfg(wxtext, g_tilecfg); // plugin config can have 
     if(wxGetApp().m_usegui)
     {
         wxGetApp().m_configwindow->SetPlugincfg(wxtext);
         NOTIFY_UPDATE_TILECFG();
         NOTIFY_UPDATE_TILENAV();
     }
+    m_plugincfg = wxtext;
    
     // unload old decoder and use new decoder
     if(m_decoder) UnloadDecoder();
     m_decoder = decoder;
-    m_tilecfg = g_tilecfg;
     
     return true;
 }
@@ -163,14 +164,17 @@ bool TileSolver::UnloadDecoder()
 wxString TileSolver::LoadPlugincfg()
 {
     wxString wxtext;
-    wxFile f(m_plugincfgfile.GetFullPath());
-    if(f.IsOpened())
+    if(wxFile::Exists(m_plugincfgfile.GetFullPath()))
     {
-        f.ReadAll(&wxtext);
-        f.Close();
-        wxLogMessage(wxString::Format(
-            "[TileSolver::LoadPlugincfg] load config from %s", 
-            m_plugincfgfile.GetFullPath()));
+        wxFile f(m_plugincfgfile.GetFullPath()); 
+        if(!f.IsOpened())
+        {
+            f.ReadAll(&wxtext);
+            f.Close();
+            wxLogMessage(wxString::Format(
+                "[TileSolver::LoadPlugincfg] load config from %s", 
+                m_plugincfgfile.GetFullPath()));
+        }
     }
     return wxtext;
 }
@@ -260,7 +264,7 @@ int TileSolver::Decode(struct tilecfg_t *tilecfg, wxFileName pluginfile)
     if(decoder->recvui)
     {
         wxString wxtext;
-        if(!wxGetApp().m_usegui) wxtext = LoadPlugincfg(); // no gui, the config will not change
+        if(!wxGetApp().m_usegui) wxtext = m_plugincfg;
         else wxtext = wxGetApp().m_configwindow->GetPlugincfg();
         decoder->recvui(decoder->context, wxtext.mb_str(), wxtext.size());
         if(decoder->msg)

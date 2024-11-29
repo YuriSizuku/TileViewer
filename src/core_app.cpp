@@ -22,9 +22,11 @@ static const wxCmdLineEntryDesc s_cmd_desc[] =
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_OPTION, "o", "outpath", "outpath for decoded file",
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_OPTION, "p", "plugin", "use extern plugin to decode",
+    { wxCMD_LINE_OPTION, "p", "plugin", "plugin path to decode",
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
-    { wxCMD_LINE_OPTION, "", "plugincfg", "select plugin cfg path",
+    { wxCMD_LINE_OPTION, "", "plugincfg", "plugin config path (default pluginpath.json)",
+        wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
+    { wxCMD_LINE_OPTION, "", "pluginparam", "set the plugincfg values, for example {\"name1\": value1,\"name2\": value2}",
         wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL },
     { wxCMD_LINE_OPTION, "", "start", "tile start offset",
         wxCMD_LINE_VAL_NUMBER, wxCMD_LINE_PARAM_OPTIONAL },
@@ -63,6 +65,7 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser& parser)
     if(parser.Found("outpath", &val)) m_tilesolver.m_outfile = val;
     if(parser.Found("plugin", &val)) m_tilesolver.m_pluginfile = val;
     if(parser.Found("plugincfg", &val)) m_tilesolver.m_plugincfgfile = val;
+    if(parser.Found("pluginparam", &val)) m_tilesolver.m_pluginparam = val;
     if(parser.Found("start", &num)) g_tilecfg.start = num;
     if(parser.Found("size", &num)) g_tilecfg.size = num;
     if(parser.Found("nrow", &num)) g_tilecfg.nrow = num;

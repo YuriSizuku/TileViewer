@@ -1,8 +1,0 @@
-{
-	"tilecfg": {
-		"w": 24, "h": 24, "bpp": 2
-	}, 
-	"plugincfg": [
-		{"name" : "endian", "type": "enum", "options":["little", "big"], "value": 1}
-	]
-}

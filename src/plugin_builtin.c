@@ -13,8 +13,8 @@ static const char* s_ui =
 "{\"name\" : \"plugin_default\",\
 \"plugincfg\" : [\
     {\"name\" : \"endian\",\"type\" : \"enum\", \"help\" : \"the bit sequence\", \"options\" : [\"little\", \"big\"], \"value\": 0}, \
-    {\"name\" : \"channel argb\",\"type\" : \"bool\", \"help\" : \"argb or abgr\", \"value\": 0}, \
-    {\"name\" : \"channel bgr\",\"type\" : \"bool\", \"help\" : \"use bgr sequence\", \"value\": 0}, \
+    {\"name\" : \"argb\",\"type\" : \"bool\", \"help\" : \"use alpha first\", \"value\": 0}, \
+    {\"name\" : \"bgr\",\"type\" : \"bool\", \"help\" : \"use bgr sequence\", \"value\": 0}, \
     {\"name\" : \"flipx\",\"type\" : \"bool\", \"help\" : \"horizon flip tile\", \"value\": 0}, \
     {\"name\" : \"flipy\",\"type\" : \"bool\", \"help\" : \"vertical flip tile\", \"value\": 0} \
 ]}"; 
@@ -78,11 +78,11 @@ PLUGIN_STATUS decode_recvui_default(void *context, const char *buf, size_t bufsi
         {
             s_plugincfg.endian_big = value->valueint > 0;
         }
-        else if (!strcmp(name->valuestring, "channel argb"))
+        else if (!strcmp(name->valuestring, "argb"))
         {
             s_plugincfg.channel_argb = value->valueint > 0;
         }
-        else if (!strcmp(name->valuestring, "channel bgr"))
+        else if (!strcmp(name->valuestring, "bgr"))
         {
             s_plugincfg.channel_abgr = value->valueint > 0;
         }
