@@ -312,6 +312,7 @@ PLUGIN_STATUS decode_sendui_lua(void *context, const char **buf, size_t *bufsize
     if(!lua_isfunction(L, -1))
     {
         lua_pop(L, 1);
+        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
         return STATUS_CALLBACKERROR;
     }
     lua_call(L, 0, 1);
@@ -334,6 +335,7 @@ PLUGIN_STATUS decode_recvui_lua(void *context, const char *buf, size_t bufsize)
     if(!lua_isfunction(L, -1))
     {
         lua_pop(L, 1);
+        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
         return STATUS_CALLBACKERROR;
     }
 
@@ -372,6 +374,8 @@ PLUGIN_STATUS decode_recvui_lua(void *context, const char *buf, size_t bufsize)
     return res ? STATUS_OK : STATUS_FAIL;
 
 decode_recvui_lua_fail:
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    
     cJSON_Delete(root);
     return STATUS_FAIL;
 }
@@ -388,6 +392,7 @@ PLUGIN_STATUS decode_pixel_lua(void *context,
     if(!lua_isfunction(L, -1))
     {
         lua_pop(L, 1);
+        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
         return STATUS_CALLBACKERROR;
     }
     lua_pushinteger(L, pos->i);
@@ -416,6 +421,7 @@ PLUGIN_STATUS decode_pre_lua(void *context,
     if(!lua_isfunction(L, -1))
     {
         lua_pop(L, 1);
+        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
         return STATUS_CALLBACKERROR;
     }
     lua_call(L, 0, 1);
@@ -435,6 +441,7 @@ PLUGIN_STATUS decode_post_lua(void *context,
     if(!lua_isfunction(L, -1))
     {
         lua_pop(L, 1);
+        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
         return STATUS_CALLBACKERROR;
     }
     lua_call(L, 0, 1);

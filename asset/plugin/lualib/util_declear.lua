@@ -47,9 +47,10 @@ function set_tilestyle(style) end -- ca pi
 function get_rawsize() end -- c api
 
 -- get tiles bytes, usually used in decode_pre, and then use this to decode pixel
----@param offset integer
----@param size integer 
+---@param offset? integer
+---@param size? integer
 ---@return string ...
+---@option
 function get_rawdata(offset, size) end --c api
 
 ---@return boolean ...

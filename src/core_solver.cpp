@@ -115,7 +115,7 @@ bool TileSolver::LoadDecoder(wxFileName pluginfile)
         size_t textsize = 0;
         decoder->sendui(decoder->context, &text, &textsize);
         wxtext.Append(text);
-        if(decoder->msg)
+        if(decoder->msg && decoder->msg[0])
         {
             wxLogMessage("[TileSolver::LoadDecoder] %s decoder->sendui msg: \n    %s", 
                 m_pluginfile.GetFullName(), decoder->msg);
@@ -262,7 +262,7 @@ int TileSolver::Decode(struct tilecfg_t *tilecfg, wxFileName pluginfile)
         if(!wxGetApp().m_usegui) wxtext = m_plugincfg;
         else wxtext = wxGetApp().m_configwindow->GetPlugincfg();
         decoder->recvui(decoder->context, wxtext.mb_str(), wxtext.size());
-        if(decoder->msg)
+        if(decoder->msg && decoder->msg[0])
         {
             wxLogMessage("[TileSolver::Decode] %s decoder->recvui msg: \n    %s", 
                 m_pluginfile.GetFullName(), decoder->msg);
