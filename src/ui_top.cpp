@@ -30,14 +30,6 @@ TopFrame::TopFrame() :
     SetIcon(icon); // load build-in icon
 #endif
     wxGetApp().SearchPlugins(pluginDir); // find decode plugins
-    
-    // file watcher
-    if(wxDirExists(pluginDir))
-    {
-        auto *filewatcher = new wxFileSystemWatcher();
-        filewatcher->SetOwner(this);
-        filewatcher->AddTree(pluginDir);
-    }
 
     // main view
     auto topSizer = new wxBoxSizer(wxVERTICAL);

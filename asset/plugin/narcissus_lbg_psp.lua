@@ -9,7 +9,6 @@ g_data = nil
 g_datasize = 0
 ---@type tilecfg_t
 g_tilecfg = nil
-
 g_uijson = [[
 {
     "plugincfg" : [
@@ -46,7 +45,7 @@ function lbg_deswizzle(i, w, h)
     local ybase = 0
     local x = xbase + blockx2 * blockw1 + blockx1
     local y = ybase + blocky2 * blockh1 + blocky1
-    
+
     return x, y
 end
 
@@ -74,7 +73,7 @@ function decode_pre()
     g_tilecfg.bpp = 32
     g_tilecfg.nbytes = g_tilecfg.w * g_tilecfg.h * 4
     set_tilecfg(g_tilecfg) -- set the fmt data back to ui
-    
+
     log(string.format("[lua_narcissus_lbg::pre] datasize=%d w=%d h=%d bpp=%d nbytes=%d", 
         g_data:len(), g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp, g_tilecfg.nbytes ))
     return true

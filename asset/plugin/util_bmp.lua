@@ -33,7 +33,7 @@ function decode_pre() -- callback for pre process
     g_tilecfg.bpp = string.unpack("<I4", g_data, 0x1c + 1)
     g_tilecfg.nbytes = 0
     set_tilecfg(g_tilecfg) -- set the fmt data back to ui
-    
+
     log(string.format("[lua_util_bmp::pre] datasize=%d w=%d h=%d bpp=%d nbytes=%d", 
         g_data:len(), g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp, g_tilecfg.nbytes ))
     return true

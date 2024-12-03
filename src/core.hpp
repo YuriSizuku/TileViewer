@@ -67,10 +67,15 @@ public:
     TileSolver m_tilesolver;
     bool m_usegui;
 
+    // others
+    void* m_filewatcher = nullptr;
+
 private:    
     virtual bool OnInit() wxOVERRIDE;
     virtual void OnInitCmdLine(wxCmdLineParser& parser) wxOVERRIDE;
     virtual bool OnCmdLineParsed(wxCmdLineParser& parser) wxOVERRIDE;
+    virtual void OnEventLoopEnter(wxEventLoopBase *loop) wxOVERRIDE;
+
 };
 
 wxDECLARE_APP(MainApp);

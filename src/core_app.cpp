@@ -77,6 +77,24 @@ bool MainApp::OnCmdLineParsed(wxCmdLineParser& parser)
     return wxApp::OnCmdLineParsed(parser);
 }
 
+void MainApp::OnEventLoopEnter(wxEventLoopBase *loop)
+{
+    // this function will invoke while app close
+    if(!wxDirExists("./plugin") || m_filewatcher) return;
+
+    auto *filewatcher = new wxFileSystemWatcher();
+    filewatcher->SetOwner(m_topWindow);
+#ifdef _WIN32
+    filewatcher->AddTree(wxFileName("./plugin"));
+#else
+    for(auto& file : m_pluginfiles)
+    {
+        filewatcher->Add(file);
+    }
+#endif
+    m_filewatcher = static_cast<void*>(filewatcher);
+}
+
 int MainApp::SearchPlugins(wxString dirpath)
 {
     m_pluginfiles.clear();
@@ -206,6 +224,8 @@ bool MainApp::Cli(wxString cmdline)
 bool MainApp::OnInit()
 {
     if (!wxApp::OnInit()) return false;
+    m_filewatcher = nullptr;
+
     wxString cmdline;
     for(int i=1; i < argc; i++)
     {
