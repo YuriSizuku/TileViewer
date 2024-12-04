@@ -309,15 +309,15 @@ int TileSolver::Decode(struct tilecfg_t *tilecfg, wxFileName pluginfile)
                 rawdata + start, datasize, &m_tilecfg.fmt,  &pixels, &npixel, true);
             for(int i=0; i< ntile; i++)
             {
-                size_t offset = i * nbytes;
-                if(offset + nbytes > npixel) break;
+                size_t tilestart = i * nbytes;
+                if(tilestart + nbytes > npixel) break;
                 auto& tile = m_tiles[i];
                 uint8_t *rgbdata = tile.GetData();
                 uint8_t *adata = tile.GetAlpha();
                 for(int pixeli=0; pixeli < m_tilecfg.fmt.w * m_tilecfg.fmt.h; pixeli++)
                 {
-                    memcpy(rgbdata + pixeli*3, (void*)(pixels + pixeli), 3);
-                    adata[pixeli] = pixels[pixeli].a; // alpah is in seperate channel
+                    memcpy(rgbdata + pixeli*3, (void*)(pixels + tilestart + pixeli), 3);
+                    adata[pixeli] = pixels[tilestart + pixeli].a; // alpah is in seperate channel
                 }
             }
         }
