@@ -109,7 +109,7 @@ PLUGIN_STATUS decode_pre(void *context,
 
     // decode png
     int w, h, c;
-    g_img = stbi_load_from_memory(rawdata + cfg->start, datasize, &w, &h, &c, 0);
+    g_img = stbi_load_from_memory(rawdata + cfg->start, datasize, &w, &h, &c, 4);
     if(!g_img)
     {
         sprintf(s_msg + strlen(s_msg), "[cmodule_util_png::pre] not a png format\n");

@@ -307,16 +307,19 @@ int TileSolver::Decode(struct tilecfg_t *tilecfg, wxFileName pluginfile)
             struct pixel_t *pixels;
             status = decoder->decodeall(context, 
                 rawdata + start, datasize, &m_tilecfg.fmt,  &pixels, &npixel, true);
+            wxLogMessage(wxString::Format("[TileSolver::Decode] decoder->decodeall recv %zu pixels", npixel));
+            
+            size_t ntilepixel = m_tilecfg.fmt.w * m_tilecfg.fmt.h;
             for(int i=0; i< ntile; i++)
             {
-                size_t tilestart = i * nbytes;
-                if(tilestart + nbytes > npixel) break;
+                size_t tilestart = i * ntilepixel;
+                if(tilestart + ntilepixel > npixel) break;
                 auto& tile = m_tiles[i];
                 uint8_t *rgbdata = tile.GetData();
                 uint8_t *adata = tile.GetAlpha();
-                for(int pixeli=0; pixeli < m_tilecfg.fmt.w * m_tilecfg.fmt.h; pixeli++)
+                for(int pixeli=0; pixeli < ntilepixel; pixeli++)
                 {
-                    memcpy(rgbdata + pixeli*3, (void*)(pixels + tilestart + pixeli), 3);
+                    memcpy(rgbdata + pixeli*3, (void*)&pixels[tilestart + pixeli], 3);
                     adata[pixeli] = pixels[tilestart + pixeli].a; // alpah is in seperate channel
                 }
             }
