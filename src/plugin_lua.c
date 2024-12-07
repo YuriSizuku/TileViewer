@@ -263,7 +263,7 @@ static void register_capis(lua_State *L)
     lua_register(L, "get_rawdata", capi_get_rawdata);
 }
 
-PLUGIN_STATUS decode_open_lua(const char *luastr, void **context)
+PLUGIN_STATUS STDCALL decode_open_lua(const char *luastr, void **context)
 {
     s_msg[0] = '\0';
     lua_State* L = luaL_newstate();
@@ -290,7 +290,7 @@ PLUGIN_STATUS decode_open_lua(const char *luastr, void **context)
     return STATUS_OK;
 }
 
-PLUGIN_STATUS decode_close_lua(void *context)
+PLUGIN_STATUS STDCALL decode_close_lua(void *context)
 {
     s_msg[0] = '\0';
     sprintf(s_msg, "[plugin_lua::close]");
@@ -303,7 +303,7 @@ PLUGIN_STATUS decode_close_lua(void *context)
     return STATUS_OK;
 }
 
-PLUGIN_STATUS decode_sendui_lua(void *context, const char **buf, size_t *bufsize)
+PLUGIN_STATUS STDCALL decode_sendui_lua(void *context, const char **buf, size_t *bufsize)
 {
     s_msg[0] = '\0';
     
@@ -325,7 +325,7 @@ PLUGIN_STATUS decode_sendui_lua(void *context, const char **buf, size_t *bufsize
     return STATUS_OK;
 }
 
-PLUGIN_STATUS decode_recvui_lua(void *context, const char *buf, size_t bufsize)
+PLUGIN_STATUS STDCALL decode_recvui_lua(void *context, const char *buf, size_t bufsize)
 {
     s_msg[0] = '\0';
     sprintf(s_msg, "[plugin_lua::recvui] recv %zu bytes\n", bufsize);
@@ -381,7 +381,7 @@ decode_recvui_lua_fail:
 }
 
 // function decode_pixel(i, x, y)
-PLUGIN_STATUS decode_pixel_lua(void *context, 
+PLUGIN_STATUS STDCALL decode_pixel_lua(void *context, 
     const uint8_t* data, size_t datasize,
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
     struct pixel_t *pixel, bool remain_index)
@@ -406,7 +406,7 @@ PLUGIN_STATUS decode_pixel_lua(void *context,
     return STATUS_OK;
 }
 
-PLUGIN_STATUS decode_pre_lua(void *context, 
+PLUGIN_STATUS STDCALL decode_pre_lua(void *context, 
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
 {
     s_msg[0] = '\0';
@@ -432,7 +432,7 @@ PLUGIN_STATUS decode_pre_lua(void *context,
     return res ? STATUS_OK : STATUS_FAIL;
 }
 
-PLUGIN_STATUS decode_post_lua(void *context, 
+PLUGIN_STATUS STDCALL decode_post_lua(void *context, 
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
 {
     s_msg[0] = '\0';

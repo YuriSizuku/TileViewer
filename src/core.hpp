@@ -7,7 +7,7 @@
 #include <wx/dynlib.h>
 #include "plugin.h"
 
-#define APP_VERSION "v0.3.4"
+#define APP_VERSION "v0.3.5"
 
 extern struct tilecfg_t g_tilecfg;
 

@@ -13,7 +13,7 @@ jobs:
   build_llvmmingw:
     strategy:
       matrix: 
-        arch: [{prefix: i686, suffix: x86}, {prefix: x86_64, suffix: x64}]
+        arch: [{prefix: i686, suffix: x86}, {prefix: x86_64, suffix: x64}, {prefix: x86_64, suffix: x64d}]
 
     runs-on: ubuntu-24.04
     steps:
@@ -34,7 +34,11 @@ jobs:
         export CC=${{ matrix.arch.prefix }}-w64-mingw32-clang
         export WINDRES=${{ matrix.arch.prefix }}-w64-mingw32-windres
         export BUILD_DIR=build
-        export BUILD_TYPE=MinSizeRel
+        if [[  "${{ matrix.arch.suffix }}" =~ "d" ]]; then
+          export BUILD_TYPE=Debug
+        else
+          export BUILD_TYPE=MinSizeRel
+        fi
         bash script/build_mingw.sh
     
     - name: prepare release

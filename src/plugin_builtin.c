@@ -29,7 +29,7 @@ static struct
 }s_plugincfg = {.endian_big=false, .channel_argb=false, 
     .channel_abgr=false, .flipx=false, .flipy=false};
 
-PLUGIN_STATUS decode_open_default(const char *name, void **context)
+PLUGIN_STATUS STDCALL decode_open_default(const char *name, void **context)
 {
     s_msg[0] = '\0';
     sprintf(s_msg, "[plugin_builtin::open]");
@@ -37,7 +37,7 @@ PLUGIN_STATUS decode_open_default(const char *name, void **context)
     return STATUS_OK;
 }
 
-PLUGIN_STATUS decode_close_default(void *context)
+PLUGIN_STATUS STDCALL decode_close_default(void *context)
 {
     s_msg[0] = '\0';
     sprintf(s_msg, "[plugin_builtin::close]");
@@ -45,7 +45,7 @@ PLUGIN_STATUS decode_close_default(void *context)
     return STATUS_OK;
 }
 
-PLUGIN_STATUS decode_sendui_default(void *context, const char **buf, size_t *bufsize)
+PLUGIN_STATUS STDCALL decode_sendui_default(void *context, const char **buf, size_t *bufsize)
 {
     s_msg[0] = '\0';
     
@@ -57,7 +57,7 @@ PLUGIN_STATUS decode_sendui_default(void *context, const char **buf, size_t *buf
     return STATUS_OK;
 }
 
-PLUGIN_STATUS decode_recvui_default(void *context, const char *buf, size_t bufsize)
+PLUGIN_STATUS STDCALL decode_recvui_default(void *context, const char *buf, size_t bufsize)
 {
     s_msg[0] = '\0';
     sprintf(s_msg, "[plugin_builtin::recvui] recv %zu bytes", bufsize);
@@ -121,7 +121,7 @@ bool decode_offset_default(void *context,
     return true;
 }
 
-PLUGIN_STATUS decode_pixel_default(void *context,
+PLUGIN_STATUS STDCALL decode_pixel_default(void *context,
     const uint8_t* data, size_t datasize, 
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
     struct pixel_t *pixel, bool remain_index)

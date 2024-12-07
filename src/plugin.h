@@ -26,10 +26,20 @@
 extern "C" {
 #endif
 
+#undef IN
+#undef OUT
+#undef OPTIONAL
+#undef REQUIRED
 #define IN
 #define OUT
 #define OPTIONAL
 #define REQUIRED
+#undef STDCALL
+#if defined(_MSC_VER) || defined(__TINYC__)
+#define STDCALL __stdcall
+#else
+#define STDCALL __attribute__((stdcall))
+#endif
 
 struct pixel_t
 {
@@ -136,12 +146,12 @@ inline const char *decode_status_str(PLUGIN_STATUS x)
  * open decoder
  * @return decoder context
  */
-typedef PLUGIN_STATUS (*CB_decode_open)(const char *name, void **context);
+typedef PLUGIN_STATUS (*STDCALL CB_decode_open)(const char *name, void **context);
 
 /**
  * close decoder
  */
-typedef PLUGIN_STATUS (*CB_decode_close)(void *context);
+typedef PLUGIN_STATUS (*STDCALL CB_decode_close)(void *context);
 
 /**
  *  decode 1 pixel 
@@ -149,7 +159,7 @@ typedef PLUGIN_STATUS (*CB_decode_close)(void *context);
  * @param pixel out a uint32_t value
  * @param remain_index keep the origin index
  */
-typedef PLUGIN_STATUS (*CB_decode_pixel)(void *context, 
+typedef PLUGIN_STATUS (*STDCALL CB_decode_pixel)(void *context, 
     const uint8_t* data, size_t datasize, 
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
     struct pixel_t *pixel, bool remain_index);
@@ -161,7 +171,7 @@ typedef PLUGIN_STATUS (*CB_decode_pixel)(void *context,
  * @param npixel how many pixels for all tiles
  * @param remain_index keep the origin index
  */
-typedef PLUGIN_STATUS (*CB_decode_pixels)(void *context, 
+typedef PLUGIN_STATUS (*STDCALL CB_decode_pixels)(void *context, 
     const uint8_t* data, size_t datasize, 
     const struct tilefmt_t *fmt, struct pixel_t *pixels[], 
     size_t *npixel, bool remain_index);
@@ -170,18 +180,18 @@ typedef PLUGIN_STATUS (*CB_decode_pixels)(void *context,
  * decode pre, post processing
  * @param rawdata rawdata of the file
  */
-typedef PLUGIN_STATUS (*CB_decode_parse)(void *context, 
+typedef PLUGIN_STATUS (*STDCALL CB_decode_parse)(void *context, 
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg);
 
 /**
  * send to the main ui
  */
-typedef PLUGIN_STATUS (*CB_decode_send)(void *context, const char **buf, size_t *bufsize);
+typedef PLUGIN_STATUS (*STDCALL CB_decode_send)(void *context, const char **buf, size_t *bufsize);
 
 /**
  * recive from the main ui
  */
-typedef PLUGIN_STATUS (*CB_decode_recv)(void *context, const char *buf, size_t bufsize);
+typedef PLUGIN_STATUS (*STDCALL CB_decode_recv)(void *context, const char *buf, size_t bufsize);
 
 /**
  * interface for C plugin
@@ -205,7 +215,7 @@ struct tile_decoder_t
 /**
  * if not export decoder struct, use get_decoder function instead
  */
-typedef struct tile_decoder_t* (*API_get_decoder)();
+typedef struct tile_decoder_t* (*STDCALL API_get_decoder)();
 
 #ifdef  __cplusplus
 }
