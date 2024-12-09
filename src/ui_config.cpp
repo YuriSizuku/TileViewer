@@ -253,42 +253,49 @@ void ConfigWindow::OnPropertyGridChanged(wxPropertyGridEvent& event)
     {
         SaveTilecfg(g_tilecfg);
         
-        // check non zero
-        if(!g_tilecfg.bpp || !g_tilecfg.w || !g_tilecfg.h || !g_tilecfg.nrow)
+        if(prop->GetName()=="nrow") // only render when change nrow
         {
-            wxMessageBox(wxString::Format(
-                "value can not be 0"), "warning", wxICON_WARNING);
-            if(!g_tilecfg.bpp) g_tilecfg.bpp = 8;
-            if(!g_tilecfg.w) g_tilecfg.w = 24;
-            if(!g_tilecfg.h) g_tilecfg.h = 24;
-            if(!g_tilecfg.nrow) g_tilecfg.nrow = 32;
+            wxGetApp().m_tilesolver.m_tilecfg.nrow =  g_tilecfg.nrow;
+            wxGetApp().m_tilesolver.Render();
         }
-        
-        // check bpp
-        if(g_tilecfg.bpp!=2 && g_tilecfg.bpp!=3 && g_tilecfg.bpp!=4 && g_tilecfg.bpp!=8 
-            && g_tilecfg.bpp!=16 && g_tilecfg.bpp!=24 && g_tilecfg.bpp!=32)
+        else // decode all tiles when setting tilecfg
         {
-            wxMessageBox(wxString::Format(
-                "bpp %d might failed, should be 2,3,4,8,16,24,32", g_tilecfg.bpp), 
-                "warning", wxICON_WARNING);
-        }
-
-        // check nbytes
-        if(g_tilecfg.nbytes !=0 && g_tilecfg.nbytes < g_tilecfg.w *  g_tilecfg.h * g_tilecfg.bpp / 8)
-        {
-            wxMessageDialog dlg(this, wxString::Format(
-                "nbytes %u is less than %ux%ux%u/8, will reset to 0", 
-                g_tilecfg.nbytes,  g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp), "warning", 
-                wxOK | wxCANCEL | wxICON_WARNING | wxCENTRE);
-
-            if(dlg.ShowModal() == wxID_OK) 
+            // check non zero
+            if(!g_tilecfg.bpp || !g_tilecfg.w || !g_tilecfg.h || !g_tilecfg.nrow)
             {
-                g_tilecfg.nbytes = 0;
-                LoadTilecfg(g_tilecfg);
+                wxMessageBox(wxString::Format(
+                    "value can not be 0"), "warning", wxICON_WARNING);
+                if(!g_tilecfg.bpp) g_tilecfg.bpp = 8;
+                if(!g_tilecfg.w) g_tilecfg.w = 24;
+                if(!g_tilecfg.h) g_tilecfg.h = 24;
+                if(!g_tilecfg.nrow) g_tilecfg.nrow = 32;
             }
-        }
+            
+            // check bpp
+            if(g_tilecfg.bpp!=2 && g_tilecfg.bpp!=3 && g_tilecfg.bpp!=4 && g_tilecfg.bpp!=8 
+                && g_tilecfg.bpp!=16 && g_tilecfg.bpp!=24 && g_tilecfg.bpp!=32)
+            {
+                wxMessageBox(wxString::Format(
+                    "bpp %d might failed, should be 2,3,4,8,16,24,32", g_tilecfg.bpp), 
+                    "warning", wxICON_WARNING);
+            }
 
-        wxGetApp().m_tilesolver.Decode(&g_tilecfg);
+            // check nbytes
+            if(g_tilecfg.nbytes !=0 && g_tilecfg.nbytes < g_tilecfg.w *  g_tilecfg.h * g_tilecfg.bpp / 8)
+            {
+                wxMessageDialog dlg(this, wxString::Format(
+                    "nbytes %u is less than %ux%ux%u/8, will reset to 0", 
+                    g_tilecfg.nbytes,  g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp), "warning", 
+                    wxOK | wxCANCEL | wxICON_WARNING | wxCENTRE);
+
+                if(dlg.ShowModal() == wxID_OK) 
+                {
+                    g_tilecfg.nbytes = 0;
+                    LoadTilecfg(g_tilecfg);
+                }
+            }            
+            wxGetApp().m_tilesolver.Decode(&g_tilecfg);
+        }
         g_tilenav.offset = -1; // prevent nrow chnages
         sync_tilenav(&g_tilenav, &g_tilecfg); 
         NOTIFY_UPDATE_TILES(); // notify tilecfg

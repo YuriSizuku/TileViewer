@@ -176,8 +176,13 @@ function decode_post()
     log("[lua_9nine_fnt::post] decode finished")
     set_tilenav({index=0, offset=-1})
     set_tilestyle({scale=1.0})
+    g_datap = nil
+    g_ntile = 0
+    g_fntglphys = {}
+    g_glphylist = {}
     if g_tilesp ~= nil then
         memdel(g_tilesp)
+        g_tilesp = nil
     end
     return true
 end
