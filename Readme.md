@@ -6,7 +6,7 @@
 
 Also, it supports for droping file, save decoded image and show cursor moving in tiles.  Futhermore, the window is flexible for changing size and support for zooming in and out with converting the client coordinate to logical coordinate.  
 
-The main purpose is for analyzing game font or textures.  See [TileDB](https://github.com/YuriSizuku/TileViewer/wiki/Font-Database) and [TexDB](https://github.com/YuriSizuku/TileViewer/wiki/Texture-Database) in detail.  
+The main purpose is for analyzing game font or textures.  See [FontDB](https://github.com/YuriSizuku/TileViewer/wiki/Font-Database) and [TexDB](https://github.com/YuriSizuku/TileViewer/wiki/Texture-Database) in detail.  
 
 ![tile_test1](asset/picture/tile_test1.png)
 (example of decoding a 2bpp tile font)
@@ -405,6 +405,8 @@ chmod +x script/*.sh
     * [x] 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)  
     * [x] plugincfg, endian, channel_first, bgr, flip ([v0.3.4.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.7))
   * [x] plugin lua decoder ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
+    * [x] set/get raw data, set/get tilecfg, tilenav
+    * [x] raw memory operations, memnew, memdel, memread, memwrite ([v0.3.5](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.5))
   * [x] plugin C decoder (dll, so) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
 
 * UI

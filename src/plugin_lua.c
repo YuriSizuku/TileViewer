@@ -3,6 +3,7 @@
  *   developed by devseed
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <lua.h>
 #include <lualib.h>
@@ -15,12 +16,28 @@ extern struct tilecfg_t g_tilecfg;
 extern struct tilenav_t g_tilenav;
 extern struct tilestyle_t g_tilestyle;
 
+struct tile_decoder_t g_decoder_lua;
+
+struct memblock_t
+{
+    void *p;
+    size_t n;
+};
+
 static struct decode_context_t
 {
     lua_State *L;
-    const uint8_t *rawdata;
-    size_t rawsize;
+    union
+    {
+        struct
+        {
+            const uint8_t *rawdata;
+            size_t rawsize;
+        };
+        struct memblock_t rawblock;
+    };
 } s_decode_context = {NULL};
+
 
 static int capi_log(lua_State* L) 
 {
@@ -38,6 +55,133 @@ static int capi_log(lua_State* L)
     fputc('\n', stdout);
     fflush(stdout);
     return 0;
+}
+
+// function memnew(size)
+static int capi_memnew(lua_State *L)
+{
+    if(lua_gettop(L) < 1 && !lua_isinteger(L, 1)) return 0;
+    size_t size = lua_tointeger(L, 1);
+    struct memblock_t *block = malloc(size + sizeof(struct memblock_t));
+    block->n = size;
+    block->p = (uint8_t*)block + sizeof(struct memblock_t);
+    lua_pushlightuserdata(L, (void*) block);
+    return 1;
+}
+
+// function memdel(p)
+static int capi_memdel(lua_State *L)
+{
+    if(lua_gettop(L) < 1 && !lua_islightuserdata(L, 1)) return 0;
+    struct memblock_t *block = lua_touserdata(L, 1);
+    free(block);
+    lua_pushboolean(L, true);
+    return 1;
+}
+
+// function memsize(p)
+static int capi_memsize(lua_State *L)
+{
+    if(lua_gettop(L) < 1 && !lua_islightuserdata(L, 1)) return 0;
+    struct memblock_t *block = (struct memblock_t *)lua_touserdata(L, 1);
+    lua_pushinteger(L, block->n);
+    return 1;
+}
+
+// function memreadi(p, size, offset)
+static int capi_memreadi(lua_State *L)
+{
+    if(lua_gettop(L) < 2 && !lua_islightuserdata(L, 1)) return 0;
+    int nargs = lua_gettop(L);
+    struct memblock_t *block = (struct memblock_t *)lua_touserdata(L, 1);
+    
+    size_t offset = 0;
+    if(nargs > 2) offset = lua_tointeger(L, 3);
+    if(offset >= block->n)  goto capi_memreadi_fail;
+    size_t size = 1;
+    if(nargs > 1) size = lua_tointeger(L, 2);
+    if(offset + size > block->n)  goto capi_memreadi_fail;
+
+    lua_Integer I = 0;
+    memcpy(&I, (uint8_t*)block->p + offset, size);
+    lua_pushinteger(L, I);
+    return 1;
+
+capi_memreadi_fail:
+    lua_pushnil(L);
+    return 1;
+}
+
+// memreads(p, size, offset) 
+static int capi_memreads(lua_State *L)
+{
+    if(lua_gettop(L) < 1 && !lua_islightuserdata(L, 1)) return 0;
+    int nargs = lua_gettop(L);
+    struct memblock_t *block = (struct memblock_t *)lua_touserdata(L, 1);
+    
+    size_t offset = 0;
+    if(nargs > 2) offset = lua_tointeger(L, 3);
+    if(offset >= block->n)  goto capi_memreads_fail;
+    size_t size = block->n - offset;
+    if(nargs > 1) size = lua_tointeger(L, 2);
+    if(offset + size > block->n)  goto capi_memreads_fail;
+
+    lua_pushlstring(L, (uint8_t*)block->p + offset, size);
+    return 1;
+
+capi_memreads_fail:
+    lua_pushnil(L);
+    return 1;
+}
+
+// memwrite(p, data, size, offset1, offset2)
+static int capi_memwrite(lua_State *L)
+{
+    if(lua_gettop(L) < 2 && !lua_islightuserdata(L, 1)) return 0;
+    int nargs = lua_gettop(L);
+    struct memblock_t *block = (struct memblock_t *)lua_touserdata(L, 1);
+    
+    size_t offset1 = 0;
+    if(nargs > 3) offset1 = lua_tointeger(L, 4);
+    if(offset1 >= block->n)  goto capi_memwrite_fail;
+    size_t size = block->n - offset1;
+    if(nargs > 2) size = lua_tointeger(L, 3);
+    if(offset1 + size > block->n)  goto capi_memwrite_fail;
+
+    if (lua_isinteger(L, 2)) // the integer can also be string
+    {
+        lua_Integer I = lua_tointeger(L, 2);
+        memcpy((uint8_t*)block->p + offset1, &I, size);
+    }
+    else if(lua_isstring(L, 2))
+    {
+        size_t size2 = 0;
+        size_t offset2 = 0;
+        if(nargs > 4) offset2 = lua_tointeger(L, 5);
+        const char *data = lua_tolstring(L, 2, &size2);
+        if(offset2 >= size2) goto capi_memwrite_fail;
+        size2 -= offset2;
+        if(size > size2) size = size2;
+        memcpy((uint8_t*)block->p + offset1, data + offset2, size);
+    }
+    else if(lua_isuserdata(L, 2))
+    {
+        struct memblock_t *block2 = (struct memblock_t *)lua_touserdata(L, 2);
+        size_t offset2 = 0;
+        if(nargs > 4) offset2 = lua_tointeger(L, 5);
+        if(offset2 >= block2->n) goto capi_memwrite_fail;
+        size_t size2 = block2->n - offset2;
+        if(size > size2) size = size2;
+        memcpy((uint8_t*)block->p + offset1, (uint8_t*)block2->p + offset2, size);
+    }
+
+    else goto capi_memwrite_fail;
+    lua_pushinteger(L, size);
+    return 1;
+
+capi_memwrite_fail:
+    lua_pushinteger(L, 0);
+    return 1;
 }
 
 static int capi_get_tilecfg(lua_State* L)
@@ -251,8 +395,20 @@ static int capi_get_rawdata(lua_State *L)
     return 1;
 }
 
+static int capi_get_rawdatap(lua_State *L)
+{
+    lua_pushlightuserdata(L, (void*)&s_decode_context.rawblock);
+    return 1;
+}
+
 static void register_capis(lua_State *L)
 {
+    lua_register(L, "memnew", capi_memnew);
+    lua_register(L, "memdel", capi_memdel);
+    lua_register(L, "memsize", capi_memsize);
+    lua_register(L, "memreadi", capi_memreadi);
+    lua_register(L, "memreads", capi_memreads);
+    lua_register(L, "memwrite", capi_memwrite);
     lua_register(L, "get_tilecfg", capi_get_tilecfg);
     lua_register(L, "set_tilecfg", capi_set_tilecfg);
     lua_register(L, "get_tilenav", capi_get_tilenav);
@@ -261,6 +417,7 @@ static void register_capis(lua_State *L)
     lua_register(L, "set_tilestyle", capi_set_tilestyle);
     lua_register(L, "get_rawsize", capi_get_rawsize);
     lua_register(L, "get_rawdata", capi_get_rawdata);
+    lua_register(L, "get_rawdatap", capi_get_rawdatap);
 }
 
 PLUGIN_STATUS STDCALL decode_open_lua(const char *luastr, void **context)
@@ -281,6 +438,13 @@ PLUGIN_STATUS STDCALL decode_open_lua(const char *luastr, void **context)
         lua_close(L);
         return STATUS_SCRIPTERROR;
     }
+
+    lua_getglobal(L, "decode_pixels");
+    if(!lua_isfunction(L, -1))
+    {
+        g_decoder_lua.decodeall = NULL;
+    }
+    lua_pop(L, 1);
 
     register_capis(L);
     s_decode_context.L = L;
@@ -406,6 +570,50 @@ PLUGIN_STATUS STDCALL decode_pixel_lua(void *context,
     return STATUS_OK;
 }
 
+PLUGIN_STATUS decode_pixels_lua(void *context, 
+    const uint8_t* data, size_t datasize, 
+    const struct tilefmt_t *fmt, struct pixel_t *pixels[], 
+    size_t *npixel, bool remain_index)
+{
+    s_msg[0] = '\0';
+    lua_State *L = ((struct decode_context_t*) context)->L;
+    lua_getglobal(L, "decode_pixels");
+    if(!lua_isfunction(L, -1))
+    {
+        lua_pop(L, 1);
+        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+        return STATUS_CALLBACKERROR;
+    }
+
+    lua_call(L, 0, 3);
+    *npixel = lua_tointeger(L, 2);
+    size_t offset = lua_tointeger(L, 3);
+    if(lua_isuserdata(L, 1))
+    {
+        struct memblock_t* block = lua_touserdata(L, 1);
+        *pixels = (struct pixel_t *)((uint8_t*)block->p + offset); 
+    }
+    else if (lua_isstring(L, 1))
+    {
+        const char *data = lua_tostring(L, 1);
+        *pixels = (struct pixel_t *) data;
+    }
+    else
+    {
+        goto decode_pixels_fail;
+    }
+    lua_pop(L, 3);
+    
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    return STATUS_OK;
+
+decode_pixels_fail:
+    *npixel = 0;
+    *pixels = NULL; 
+    return STATUS_FAIL;
+}
+
+
 PLUGIN_STATUS STDCALL decode_pre_lua(void *context, 
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
 {
@@ -456,7 +664,7 @@ struct tile_decoder_t g_decoder_lua = {
     .version = 340, .size = sizeof(struct tile_decoder_t), 
     .msg = s_msg, .context = NULL, 
     .open = decode_open_lua, .close = decode_close_lua, 
-    .decodeone = decode_pixel_lua, .decodeall = NULL, 
+    .decodeone = decode_pixel_lua, .decodeall = decode_pixels_lua, 
     .pre=decode_pre_lua, .post=decode_post_lua, 
     .sendui=decode_sendui_lua, .recvui=decode_recvui_lua, 
 };

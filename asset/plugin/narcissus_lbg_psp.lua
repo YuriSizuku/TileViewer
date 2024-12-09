@@ -56,7 +56,6 @@ function decode_pre()
     if(g_tilecfg.size > 0) then g_datasize = math.min(g_datasize, g_tilecfg.size) end
     g_data = get_rawdata(0x20, 0);
 
-
     --- prepare decoding data
     w, h = 512, 272
     for i=0, w*h do

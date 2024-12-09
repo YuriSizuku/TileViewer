@@ -35,10 +35,13 @@ extern "C" {
 #define OPTIONAL
 #define REQUIRED
 #undef STDCALL
+#define STDCALL
+#if 0 
 #if defined(_MSC_VER) || defined(__TINYC__)
 #define STDCALL __stdcall
-#else
+#else // warning: ‘stdcall’ attribute ignored [-Wattributes]
 #define STDCALL __attribute__((stdcall))
+#endif
 #endif
 
 struct pixel_t

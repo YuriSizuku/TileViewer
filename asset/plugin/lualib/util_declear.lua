@@ -25,6 +25,41 @@
 -- use log(...) to redirect to log window
 function log(...) end
 
+-- memory manipulate with c
+
+---@param size integer
+---@return lightuserdata ...
+function memnew(size) end --c api
+
+---@param p lightuserdata
+---@return boolean ...
+function memdel(p) end --c api
+
+---@param p lightuserdata
+---@return integer ...
+function memsize(p) end --c api
+
+---@param p lightuserdata
+---@param size? integer
+---@param offset? integer
+---@return integer ...
+function memreadi(p, size, offset) end --c api
+
+---@param p lightuserdata
+---@param size? integer
+---@param offset? integer
+---@return string ...
+function memreads(p, size, offset) end --c api
+
+---@param p lightuserdata
+---@param data integer|string|lightuserdata
+---@param size? integer
+---@param offset1 ? integer p offset
+---@param offset2 ? integer data offset
+---@return integer ...
+function memwrite(p, data, size, offset1, offset2) end --c api
+
+-- set or get tile informations
 ---@return tilecfg_t ...
 function get_tilecfg() end -- c api
 
@@ -50,8 +85,11 @@ function get_rawsize() end -- c api
 ---@param offset? integer
 ---@param size? integer
 ---@return string ...
----@option
 function get_rawdata(offset, size) end --c api
+
+-- get the lightuserdata pointer for userptr 
+---@return lightuserdata ...
+function get_rawdatap() end --c api
 
 ---@return boolean ...
 function decode_pre() end -- c callback
@@ -61,6 +99,11 @@ function decode_pre() end -- c callback
 ---@param y integer y pos in a tile
 ---@return integer ... pixel value packed in rgba
 function decode_pixel(i, x, y)  end -- c callback
+
+---@return lightuserdata | string ... pixels memory 
+---@return integer ... npixels
+---@return integer ... offset
+function decode_pixels() end -- c callback
 
 ---@return boolean ...
 function decode_post() end -- c callback
