@@ -1,8 +1,9 @@
 ---@diagnostic disable : lowercase-global, missing-fields, undefined-global, duplicate-doc-field, undefined-field
 
 io = require("io")
+ui = require("ui")
 
-version = "v0.1"
+version = "v0.2"
 description = "[lua_9nine_fnt::init] lua plugin to decode 9nine fnt lz77 format"
 
 -- global declear 
@@ -133,6 +134,7 @@ function decode_pre()
 
     log(string.format("[lua_9nine_fnt::pre] datasize=%d, w=%d h=%d bpp=%d nbytes=%d ntiles=%d",
         memsize(g_datap), g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp, g_tilecfg.nbytes, g_ntile))
+    -- ui.msgbox("this plugin might take long time to decode all pixels", "notice")
 
     return true
 end
@@ -142,6 +144,8 @@ function decode_pixels()
     g_tilesp = memnew(g_ntile * tilesize)
     local i = 0
     local outdatap = memnew(128 * 128 * 4)
+    
+    local progdlg = ui.progress_new("progress", "decode", g_ntile)
     for _, glphyi in ipairs(g_glphylist) do -- iparis index start from 1
         local insize = g_fntglphys[glphyi].zsize
         local inoffset = g_fntglphys[glphyi].ref_glphyaddr
@@ -165,9 +169,12 @@ function decode_pixels()
             end
         end
 
+        ui.progress_update(progdlg, i, string.format("decoding tile %d/%d", i+1, g_ntile));
         i = i + 1
         -- if i > 10 then break end
     end
+    ui.progress_del(progdlg)
+
     memdel(outdatap)
     return g_tilesp, g_ntile * g_tilecfg.w * g_tilecfg.h, 0
 end

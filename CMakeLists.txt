@@ -111,6 +111,7 @@ set(TILEVIEWER_CODE
     src/core_solver.cpp
     src/plugin_builtin.c
     src/plugin_lua.c
+    src/plugin_luaex.cpp
     src/ui_top.cpp
     src/ui_menu.cpp
     src/ui_config.cpp

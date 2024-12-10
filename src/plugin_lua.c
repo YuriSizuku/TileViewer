@@ -16,6 +16,8 @@ extern struct tilecfg_t g_tilecfg;
 extern struct tilenav_t g_tilenav;
 extern struct tilestyle_t g_tilestyle;
 
+extern int luaopen_ui(lua_State *L);
+
 struct tile_decoder_t g_decoder_lua;
 
 struct memblock_t
@@ -401,8 +403,15 @@ static int capi_get_rawdatap(lua_State *L)
     return 1;
 }
 
-static void register_capis(lua_State *L)
+static void register_extra(lua_State *L)
 {
+    luaL_requiref(L, "ui", luaopen_ui, 0); // lua extra function module
+    lua_pop(L, 1); // requiref will level on the top
+}
+
+static void register_basic(lua_State *L)
+{
+    lua_register(L, "log", capi_log);
     lua_register(L, "memnew", capi_memnew);
     lua_register(L, "memdel", capi_memdel);
     lua_register(L, "memsize", capi_memsize);
@@ -429,7 +438,8 @@ PLUGIN_STATUS STDCALL decode_open_lua(const char *luastr, void **context)
 
     // load the script
     sprintf(s_msg, "[plugin_lua::open]\n");
-    lua_register(L, "log", capi_log);
+    register_basic(L);
+    register_extra(L);
     if(luaL_dostring(L, luastr) != LUA_OK)
     {
         const char *text = lua_tostring(L, -1);
@@ -446,7 +456,6 @@ PLUGIN_STATUS STDCALL decode_open_lua(const char *luastr, void **context)
     }
     lua_pop(L, 1);
 
-    register_capis(L);
     s_decode_context.L = L;
     *context = &s_decode_context;
 

@@ -407,6 +407,7 @@ chmod +x script/*.sh
   * [x] plugin lua decoder ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
     * [x] set/get raw data, set/get tilecfg, tilenav
     * [x] raw memory operations, memnew, memdel, memread, memwrite ([v0.3.5](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.5))
+    * [x] lua extra part to invoke wxwidgets ([v0.3.5.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.5.2))
   * [x] plugin C decoder (dll, so) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
 
 * UI
