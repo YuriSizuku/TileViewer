@@ -1,5 +1,7 @@
 ---@diagnostic disable : lowercase-global, missing-fields, undefined-global, duplicate-doc-field, undefined-field
 
+ui = require("ui")
+
 version = "v0.1"
 description = "[lua_yomawari3_nltx::init] lua plugin to decode yomawari3 swizzle texture"
 
@@ -15,6 +17,7 @@ g_uijson = [[
 ]]
 g_blockheight = 0
 g_bytesperpixel = 4
+g_progdlg = nil
 
 function DIV_ROUND_UP(n, d)
     return (n + d - 1) // d
@@ -47,6 +50,9 @@ function decode_pre()
     log(string.format("[lua_yomawari3_nltx::pre] datasize=%d w=%d h=%d bpp=%d nbytes=%d",
         g_data:len(), g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp, g_tilecfg.nbytes))
 
+    -- set other information
+    g_progdlg = ui.progress_new("progress", "decoding pixels", g_tilecfg.w * g_tilecfg.h)
+
     return true
 end
 
@@ -54,11 +60,19 @@ function decode_pixel(i, x, y)
     offset = tegrax1_deswizzle(x, y, g_tilecfg.w, g_bytesperpixel, 0, g_blockheight)
     if(offset + g_bytesperpixel >= g_data:len()) then return 0 end
     pixel = 0
-    if(g_bytesperpixel == 4) then 
+    if(g_bytesperpixel == 4) then
         pixel = string.unpack("<I4", g_data, offset + 1)
-    elseif(g_bytesperpixel == 3) then 
+    elseif(g_bytesperpixel == 3) then
         pixel = string.unpack("<I3", g_data, offset + 1)
     end
+
+    -- update progress
+    local done = y * g_tilecfg.w + x
+    local all = g_tilecfg.w * g_tilecfg.h
+    if( done % (all // 100) == 0) then
+        ui.progress_update(g_progdlg, done, string.format("decoding pixels %d/%d", done,  all))
+    end
+
     return pixel
 end
 
@@ -66,7 +80,9 @@ function decode_post()
     log("[lua_yomawari3_nltx::post] decode finished")
     set_tilenav({index=0, offset=-1})
     set_tilestyle({scale=0.42})
+    ui.progress_del(g_progdlg)
     g_data = nil
+    g_progdlg = nil
     return true
 end
 

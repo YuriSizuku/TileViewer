@@ -13,12 +13,12 @@ function ui.msgbox(message, caption, style) end --c api
 ---@return lightuserdata ...
 function ui.progress_new(title, message, maximum, style) end --c api
 
----@param p lightuserdata
+---@param p lightuserdata|nil
 ---@param value integer
 ---@param message? string
 ---@return boolean ...
 function ui.progress_update(p, value, message) end --c api
 
----@param p lightuserdata
+---@param p lightuserdata|nil
 ---@return boolean ...
 function ui.progress_del(p) end --c api

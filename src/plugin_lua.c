@@ -128,7 +128,7 @@ static int capi_memreads(lua_State *L)
     if(nargs > 1) size = lua_tointeger(L, 2);
     if(offset + size > block->n)  goto capi_memreads_fail;
 
-    lua_pushlstring(L, (uint8_t*)block->p + offset, size);
+    lua_pushlstring(L, (const char *)((uint8_t*)block->p + offset), size);
     return 1;
 
 capi_memreads_fail:
