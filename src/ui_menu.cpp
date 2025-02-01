@@ -20,6 +20,7 @@ wxBEGIN_EVENT_TABLE(MainMenuBar, wxWindow)
     EVT_MENU(Menu_ScaleDown, MainMenuBar::OnScale)
     EVT_MENU(Menu_ScaleReset, MainMenuBar::OnScale)
     EVT_MENU(Menu_Log, MainMenuBar::OnLogcat)
+    EVT_MENU(Menu_Param, MainMenuBar::OnParam)
     EVT_MENU(Menu_About, MainMenuBar::OnAbout)
 wxEND_EVENT_TABLE()
 
@@ -76,6 +77,7 @@ MainMenuBar::MainMenuBar(wxFrame *parent)
     wxMenu *helpMenu = new wxMenu;
     helpMenu->Append(Menu_About, "About\tF1", "Show about dialog");
     helpMenu->Append(Menu_Log, "&Logcat\tCtrl-L", "log view of this program");
+    helpMenu->Append(Menu_Param, "&Param\tCtrl-P", "Show current tile param");
 
     // menu bar and setting
     this->Append(fileMenu, "File");
@@ -216,4 +218,24 @@ void MainMenuBar::OnAbout(wxCommandEvent& WXUNUSED(event))
 void MainMenuBar::OnLogcat(wxCommandEvent& WXUNUSED(event))
 {
     wxGetApp().m_logwindow->Show(true);
+}
+
+void MainMenuBar::OnParam(wxCommandEvent& WXUNUSED(event))
+{
+    wxString param;
+
+    // tilecfg
+    param += wxString::Format("--width %d --height %d --bpp %d ", g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp);
+    if(g_tilecfg.nbytes > 0) param += wxString::Format("--nbytes %d ", g_tilecfg.nbytes);
+    if(g_tilecfg.start > 0) param += wxString::Format("--start %d ", g_tilecfg.start);
+    if(g_tilecfg.size > 0) param += wxString::Format("--size %d ", g_tilecfg.size);
+
+    // plugincfg
+    wxString plugin = wxGetApp().m_tilesolver.m_pluginfile.GetFullPath();
+    if(plugin.find("default") < 0) param += wxString::Format("--plugin %s ", plugin);
+    wxString pluginparam = wxGetApp().m_configwindow->GetPluginparam();
+    if(pluginparam.Length() > 0) param += wxString::Format("--pluginparam \"%s\" ", pluginparam);
+
+    wxTextEntryDialog dlg(nullptr, wxString(), "Tile Param", param, wxOK);
+    dlg.ShowModal();
 }

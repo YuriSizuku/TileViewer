@@ -191,7 +191,30 @@ wxString ConfigWindow::GetPlugincfg()
     text.Append(cJSON_PrintUnformatted(root));
     cJSON_Delete(root);
     
-    wxLogMessage(wxString::Format("[ConfigWindow::GetPlugincfg] %s", text));
+    // wxLogMessage(wxString::Format("[ConfigWindow::GetPlugincfg] %s", text));
+    return text;
+}
+
+wxString ConfigWindow::GetPluginparam()
+{
+    wxString text;
+
+    cJSON *root = cJSON_CreateObject();
+    for (auto it = m_pg->GetIterator(); !it.AtEnd(); it++)
+    {
+        wxPGProperty* p = *it;
+        if(p->GetParent()->GetName() != "plugincfg") continue;
+        cJSON *value = nullptr;
+        if(p->GetValueType() != "string") value = cJSON_CreateNumber(p->GetValue());
+        else value = cJSON_CreateString(p->GetValueAsString());
+
+        cJSON_AddItemToObject(root, p->GetName(), value);
+    }
+    text.Append(cJSON_PrintUnformatted(root));
+    cJSON_Delete(root);
+    
+    text.Replace('"', '\'');
+    
     return text;
 }
 

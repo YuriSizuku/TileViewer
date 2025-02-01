@@ -11,6 +11,7 @@
 enum UI_ID
 {
     Menu_Log = 1000,
+    Menu_Param, 
     Menu_Plugin,
     Menu_ScaleUp= Menu_Plugin + MAX_PLUGIN + 1,
     Menu_ScaleDown, 
@@ -61,6 +62,7 @@ private:
     void OnStyle(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnLogcat(wxCommandEvent& event);
+    void OnParam(wxCommandEvent& event);
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -71,6 +73,7 @@ public:
     void SaveTilecfg(struct tilecfg_t &cfg);
     void SetPlugincfg(wxString &text);
     wxString GetPlugincfg();
+    wxString GetPluginparam();
     void ClearPlugincfg();
 
     ConfigWindow(wxWindow* parent);
