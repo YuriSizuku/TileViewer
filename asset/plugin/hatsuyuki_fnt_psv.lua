@@ -4,7 +4,7 @@ io = require("io")
 ui = require("ui")
 
 version = "v0.2"
-description = "[lua_9nine_fnt::init] lua plugin to decode 9nine fnt lz77 format"
+description = "[lua_hatsuyuki_fnt::init] lua plugin to decode hatsuyuki fnt lz77 format"
 
 -- global declear 
 g_datap = nil --- @type lightuserdata
@@ -18,6 +18,7 @@ g_tilesp = nil ---@type lightuserdata
 ---@field fsize integer
 ---@field distop integer -- distance between baseline and top/bottom
 ---@field disbottom integer
+---@field padding integer -- use in FNT4 v0
 
 ---@class fntglphy_t
 ---@field bearingx integer
@@ -26,8 +27,8 @@ g_tilesp = nil ---@type lightuserdata
 ---@field actualh integer
 ---@field advancew integer
 ---@field reserve1 integer
----@field texturew integer
----@field textureh integer
+---@field texturew integer  -- in FNT4-v0 texturew=ceil(actualw/2) 4bpp
+---@field textureh integer  -- in FNT4-v0 textureh=actualh
 ---@field zsize integer
 ---@field ref_glphyaddr integer
 
@@ -41,12 +42,12 @@ g_glphylist = {} -- list for render tiles, remove duplicate
 ---@param outoffset? integer
 ---@param offsetbits? integer
 ---@return integer
-function lz77_decode(indata, outdata, insize, inoffset, outoffset, offsetbits)
+function lz77_decode(indata, outdata, insize, inoffset, outoffset, lenbits)
 --[[
-    FNT4 v1
-    MSB  XXXXXXXX          YYYYYYYY    LSB
-    val  len               backOffset
-    size (16-OFFSET_BITS)  OFFSET_BITS
+    FNT4 v0
+    MSB  XXXX           YYYY    LSB
+    val  backOffset     len
+    size (8-LEN_BITS)   LEN_BITS
 
     index8, 8 * [val16 | val8]
 --]]
@@ -54,7 +55,7 @@ function lz77_decode(indata, outdata, insize, inoffset, outoffset, offsetbits)
     if insize == nil then insize = memsize(indata) - inoffset end
     if inoffset == nil then inoffset = 0 end
     if outoffset == nil then outoffset = 0 end
-    if offsetbits == nil then offsetbits = 10 end
+    if lenbits == nil then lenbits = 3 end
 
     local incur, outcur = inoffset, outoffset
     local outsize = memsize(outdata) - outoffset
@@ -70,16 +71,15 @@ function lz77_decode(indata, outdata, insize, inoffset, outoffset, offsetbits)
                 incur = incur + 1
                 outcur = outcur + 1
             else -- seek from output
-                local backseekval = memreadi(indata, 2, incur)
-                backseekval = ((backseekval & 0xff) << 8) + ((backseekval >> 8) & 0xff) -- big endian
-                local backoffsetmask = (1<<offsetbits) - 1
-                local backlength = (backseekval >> offsetbits) + 3 -- length must larger than 3
-                local backoffset = (backseekval & backoffsetmask) + 1
+                local backseekval = memreadi(indata, 1, incur)
+                local backlenmask = (1<<lenbits) - 1
+                local backoffset = (backseekval >> lenbits) + 1 -- length must larger than 1
+                local backlength = (backseekval & backlenmask) + 2
                 for _ = 1, backlength do -- push char to output one by one
                     memwrite(outdata, outdata, 1, outcur, outcur - backoffset)
                     outcur = outcur + 1
                 end
-                incur = incur + 2
+                incur = incur + 1
             end
         end
     end
@@ -89,22 +89,30 @@ end
 ---@param p lightuserdata
 ---@return fnt_t, table<fntglphy_t>
 function parse_fnt(p)
-    FNT_FMT, FNTGLPHY_FMT = "<c4I4I4HH", "<bbBBBBBBH"
+    FNT_FMT, FNTGLPHY_FMT = "<c4I4HHI4", "<bbBBBBH"
     FNT_FMT_SIZE = string.packsize(FNT_FMT)
     FNTGLPHY_FMT_SIZE = string.packsize(FNTGLPHY_FMT)
-    local data = memreads(p, FNT_FMT_SIZE + 0x10000 * 4)
-    local magic, version, fsize, distop, disbottom = string.unpack(FNT_FMT, data)
+    -- read character offset table
+    local first_offset_data = memreads(p, 4, 0x10)
+    local first_offset = string.unpack('<I4', first_offset_data)
+    local character_size = (first_offset - 0x10)/4
+    -- log(string.format("debug: character size %d",character_size))
+    -- find glyph base offset
+    local data = memreads(p, FNT_FMT_SIZE + character_size * 4)
+    local magic, fsize, distop, disbottom, padding = string.unpack(FNT_FMT, data)
+    local version = 0
     local fnt = {magic=magic, version=version, fsize=fsize, distop=distop, disbottom=disbottom}
     local fntglphys = {}
-    for i = 1, 0x10000  do
+    for i = 1, character_size  do
         local offset = string.unpack("<I4", data, FNT_FMT_SIZE + (i - 1) * 4 + 1)
         local data2 = memreads(p, FNTGLPHY_FMT_SIZE, offset)
         -- print(string.format("%d %x %x", i, offset, data2:len()))
         local bearingx, bearingy, actualw, actualh, advancew, reserve1,
-            texturew, textureh, zsize = string.unpack(FNTGLPHY_FMT, data2)
+            zsize = string.unpack(FNTGLPHY_FMT, data2)
+        local texturew, textureh = math.ceil(actualw/2), actualh
         fntglphys[i] = {bearingx=bearingx, bearingy=bearingy, actualw=actualw,
             actualh=actualh, advancew=advancew, reserve1=reserve1, texturew=texturew,
-            textureh=textureh, reserve2=reserve2, zsize=zsize, ref_glphyaddr=offset + FNTGLPHY_FMT_SIZE}
+            textureh=textureh, zsize=zsize, ref_glphyaddr=offset + FNTGLPHY_FMT_SIZE}
         -- print(string.format("%d %d %d %x", i, texturew, textureh, zsize))
     end
     return fnt, fntglphys
@@ -130,10 +138,10 @@ function decode_pre()
     g_ntile = count
 
     -- set the information for decoding
-    g_tilecfg = {w=80, h=80, bpp=8, nbytes=1, nrow=64, size=g_ntile}
+    g_tilecfg = {w=29, h=29, bpp=4, nbytes=1, nrow=64, size=g_ntile}
     set_tilecfg(g_tilecfg)
 
-    log(string.format("[lua_9nine_fnt::pre] datasize=%d, w=%d h=%d bpp=%d nbytes=%d ntiles=%d",
+    log(string.format("[lua_hatsuyuki_fnt::pre] datasize=%d, w=%d h=%d bpp=%d nbytes=%d ntiles=%d",
         memsize(g_datap), g_tilecfg.w, g_tilecfg.h, g_tilecfg.bpp, g_tilecfg.nbytes, g_ntile))
     -- ui.msgbox("this plugin might take long time to decode all pixels", "notice")
 
@@ -155,8 +163,7 @@ function decode_pixels()
         if insize>0 then
             outsize = lz77_decode(g_datap, outdatap, insize, inoffset)
         else -- insize==0
-            local initial_mip_size = g_fntglphys[glphyi].texturew*g_fntglphys[glphyi].textureh
-            outsize = initial_mip_size + (initial_mip_size//4) + (initial_mip_size//16) + (initial_mip_size//64)
+            outsize = g_fntglphys[glphyi].texturew*g_fntglphys[glphyi].textureh
             if outsize~=0 then
                 local unzip_bytes = memreads(g_datap, outsize, inoffset)
                 memwrite(outdatap, unzip_bytes, outsize, 0)
@@ -182,7 +189,7 @@ function decode_pixels()
 
         ui.progress_update(progdlg, i, string.format("decoding tile %d/%d", i+1, g_ntile));
         i = i + 1
-        -- if i > 10 then break end
+        -- if i > 100 then break end
     end
     ui.progress_del(progdlg)
 
@@ -191,7 +198,7 @@ function decode_pixels()
 end
 
 function decode_post()
-    log("[lua_9nine_fnt::post] decode finished")
+    log("[lua_hatsuyuki_fnt::post] decode finished")
     set_tilenav({index=0, offset=-1})
     set_tilestyle({scale=1.0})
     g_datap = nil
