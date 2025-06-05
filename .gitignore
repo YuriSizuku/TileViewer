@@ -2,7 +2,7 @@
 *.a
 *.dll
 *.exe
-.vscode
+.vscode/settings.json
 depend
 
 build_**/*

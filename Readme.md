@@ -269,26 +269,22 @@ log(jstr)
 
 ### (1) Windows
 
-install `llvm-mingw` if needed
+Install `llvm-mingw` (or [i686-11.2.0-release-win32-dwarf-rt_v9-rev1](https://github.com/niXman/mingw-builds-binaries/releases/download/11.2.0-rt_v9-rev1/i686-11.2.0-release-win32-dwarf-rt_v9-rev1.7z) compatible for `winxp`) at first
 
 ``` sh
-init_mingwsdk() {
-    echo "## init_mingwsdk ${MINGWSDK}"
-    if ! [ -d ${MINGWSDK} ]; then
-        if [ -n "$(uname -a | grep Linux)" ]; then
-            curl -fsSL https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64.tar.xz -o /tmp/llvm-mingw.tar.xz
-            tar xf /tmp/llvm-mingw.tar.xz -C /tmp
-            _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64 
-            mv -f ${_tmppath} $MINGWSDK || echo "try to use sudo mv to $MINGWSDK" && sudo mv -f ${_tmppath} $MINGWSDK
-            rm -rf /tmp/llvm-mingw.tar.xz
-        else
-            curl -fsSL https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-msvcrt-x86_64.zip -o ~/llvm-mingw.zip
-            7z x ~/llvm-mingw.zip -o$HOME
-            mv -f ~/llvm-mingw-20240619-msvcrt-x86_64 $MINGWSDK
-            rm -rf ~/llvm-mingw.zip
-        fi
-    fi
-}
+echo "## init_mingwsdk ${MINGWSDK_HOME}"
+if [ -n "$(uname -a | grep Linux)" ]; then
+    curl -fsSL https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64.tar.xz -o /tmp/llvm-mingw.tar.xz
+    tar xf /tmp/llvm-mingw.tar.xz -C /tmp
+    _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64 
+    mv -f ${_tmppath} $MINGWSDK_HOME || echo "try to use sudo mv to $MINGWSDK_HOME" && sudo mv -f ${_tmppath} $MINGWSDK_HOME
+    rm -rf /tmp/llvm-mingw.tar.xz
+else
+    curl -fsSL https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-msvcrt-x86_64.zip -o ~/llvm-mingw.zip
+    7z x ~/llvm-mingw.zip -o$HOME
+    mv -f ~/llvm-mingw-20240619-msvcrt-x86_64 $MINGWSDK_HOME
+    rm -rf ~/llvm-mingw.zip
+fi
 ```
 
 then fetch depends and build (choose different CC to build x86 or x64)
@@ -296,27 +292,24 @@ then fetch depends and build (choose different CC to build x86 or x64)
 ``` sh
 git clone https://github.com/YuriSizuku/TileViewer.git
 cd TileViewer
+bash script/fetch_depend.sh
 
 # windows llvm-mingw x64 debug
-sh -c "export CC=x86_64-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw64 BUILD_TYPE=Debug && script/build_mingw.sh"
-
+sh -c "CC=x86_64-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw64 BUILD_TYPE=Debug script/build_mingw.sh"
 # windows llvm-mingw x86 release
-sh -c "export CC=i686-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw32 BUILD_TYPE=MinSizeRel && script/build_mingw.sh"
-
+sh -c "CC=i686-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw32 BUILD_TYPE=MinSizeRel script/build_mingw.sh"
 # windows llvm-mingw aarch64 debug
-sh -c "export CC=aarch64-w64-mingw32-clang WINDRES=aarch64-w64-mingw32-windres  BUILD_DIR=$(pwd)/build_mingwa64 BUILD_TYPE=Debug 
-&& script/build_mingw.sh"
+sh -c "CC=aarch64-w64-mingw32-clang WINDRES=aarch64-w64-mingw32-windres  BUILD_DIR=$(pwd)/build_mingwa64 BUILD_TYPE=Debug script/build_mingw.sh"
 
 # linux mingw x64 debug
-export CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres BUILD_DIR=build_mingw64 && bash script/build_mingw.sh
-
+CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres BUILD_DIR=build_mingw64 bash script/build_mingw.sh
 # linux mingw x86 release (use gcc below 12 for xp)
-export CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres BUILD_DIR=build_mingw32 && BUILD_TYPE=MinSizeRel && bash script/build_mingw.sh
+CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres BUILD_DIR=build_mingw32 BUILD_TYPE=MinSizeRel bash script/build_mingw.sh
 ```
 
 ### (2) Linux
 
-install dependencies at first
+Install dependencies at first
 
 ``` sh
 # for general
@@ -349,10 +342,10 @@ cd TileViewer
 chmod +x script/*.sh
 
 # linux x64 debug
-export CC=x86_64-linux-gnu-gcc CXX=x86_64-linux-gnu-g++ BUILD_DIR=build_linux64 BUILD_TYPE=Debug && bash script/build_linux.sh
+CC=x86_64-linux-gnu-gcc CXX=x86_64-linux-gnu-g++ BUILD_DIR=build_linux64 BUILD_TYPE=Debug bash script/build_linux.sh
 
 # linux x86 debug
-export CC=i686-linux-gnu-gcc CXX=i686-linux-gnu-g++ BUILD_DIR=build_linux32 BUILD_TYPE=Debug && bash script/build_linux.sh
+CC=i686-linux-gnu-gcc CXX=i686-linux-gnu-g++ BUILD_DIR=build_linux32 BUILD_TYPE=Debug bash script/build_linux.sh
 ```
 
 linux cross build by docker

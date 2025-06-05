@@ -1,0 +1,46 @@
+{
+    "env": { // edit your env here
+        "mingwsdk" : "${env:MINGWSDK_HOME}"
+    },
+    "configurations": [
+        {
+            "name": "Win64",
+            "includePath": [
+                "${workspaceFolder}/src/**", 
+                "${workspaceFolder}/build_mingw64/**", 
+                "${workspaceFolder}/depend/lua-5.4.7/src/**", 
+                "${workspaceFolder}/depend/cJSON-1.7.18/**", 
+                "${workspaceFolder}/depend/stb-lastest/**",
+                "${workspaceFolder}/depend/wxWidgets-3.2.6/include"
+
+            ],
+            "defines": [
+                "_DEBUG"
+            ],
+            "compilerPath": "${mingwsdk}/bin/x86_64-w64-mingw32-clang.exe",
+            "cStandard": "c99",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "windows-gcc-x64"
+        },
+        {
+            "name": "Linux64",
+            "includePath": [
+                "${workspaceFolder}/src/**", 
+                "${workspaceFolder}/build_mingw64/**", 
+                "${workspaceFolder}/depend/lua-5.4.7/src/**", 
+                "${workspaceFolder}/depend/cJSON-1.7.18/**", 
+                "${workspaceFolder}/depend/stb-lastest/**",
+                "${workspaceFolder}/depend/wxWidgets-3.2.6/include"
+
+            ],
+            "defines": [
+                "_DEBUG"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c99",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
