@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 env:
-  MINGWSDK: /opt/mingwsdk
+  LLVMMINGW_HOME: /opt/llvmmingw
 
 jobs:
   build_llvmmingw:
@@ -25,12 +25,12 @@ jobs:
         curl -fsSL https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64.tar.xz -o /tmp/llvm-mingw.tar.xz
         tar xf /tmp/llvm-mingw.tar.xz -C /tmp
         _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64 
-        sudo mv -f ${_tmppath} $MINGWSDK
+        sudo mv -f ${_tmppath} $LLVMMINGW_HOME
 
     - name: build ${{ matrix.arch.suffix }}
       run: |
         mkdir build
-        export PATH=${MINGWSDK}/bin:$PATH
+        export PATH=${LLVMMINGW_HOME}/bin:$PATH
         export CC=${{ matrix.arch.prefix }}-w64-mingw32-clang
         export WINDRES=${{ matrix.arch.prefix }}-w64-mingw32-windres
         export BUILD_DIR=build
@@ -73,7 +73,7 @@ jobs:
     - name: build ${{ matrix.arch.suffix }}
       run: |
         mkdir build
-        export PATH=${MINGWSDK}/bin:$PATH
+        export PATH=${LLVMMINGW_HOME}/bin:$PATH
         export CC=${{ matrix.arch.prefix }}-w64-mingw32-gcc
         export CXX=${{ matrix.arch.prefix }}-w64-mingw32-g++
         export WINDRES=${{ matrix.arch.prefix }}-w64-mingw32-windres

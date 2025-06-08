@@ -1,6 +1,6 @@
 {
     "env": { // edit your env here
-        "mingwsdk" : "${env:MINGWSDK_HOME}"
+        "llvmmingw" : "${env:LLVMMINGW_HOME}"
     },
     "configurations": [
         {
@@ -17,7 +17,7 @@
             "defines": [
                 "_DEBUG"
             ],
-            "compilerPath": "${mingwsdk}/bin/x86_64-w64-mingw32-clang.exe",
+            "compilerPath": "${llvmmingw}/bin/x86_64-w64-mingw32-clang.exe",
             "cStandard": "c99",
             "cppStandard": "c++11",
             "intelliSenseMode": "windows-gcc-x64"
