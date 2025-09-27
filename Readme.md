@@ -257,6 +257,15 @@ function decode_post() -- callback for post process
 end
 ```
 
+You can also load extern lualib, for example, put [json.lua](https://github.com/rxi/json.lua) into `plugin\lualib` then load this plugin by `require`.  
+
+``` lua
+json = require "plugin.lualib.json"
+jstr = json.encode({ 1, 2, 3, { x = 10 } })
+log(jstr)
+```
+
+
 ### (4) .Net plugin
 
 [TileViewer.Plugin.Dotnet](https://github.com/UtawareruDD/TileViewer.Plugin.Dotnet)
@@ -265,6 +274,7 @@ This repository hosts a .NET 9 AOT-ready managed plugin skeleton for TileViewer.
 How to use
 
 Create a new class implementing IConfigurableTileDecoder. If you don’t know how to start, see [MainTileDecoder](https://github.com/UtawareruDD/TileViewer.Plugin.Dotnet/blob/main/TileViewer.Plugin.Dotnet/Decoders/MainTileDecoder.cs) (demo).
+
 
 
 ## Build
