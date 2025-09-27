@@ -265,6 +265,18 @@ jstr = json.encode({ 1, 2, 3, { x = 10 } })
 log(jstr)
 ```
 
+
+### (4) .Net plugin
+
+[TileViewer.Plugin.Dotnet](https://github.com/UtawareruDD/TileViewer.Plugin.Dotnet)
+This repository hosts a .NET 9 AOT-ready managed plugin skeleton for TileViewer. The project replaces the native tile_decoder_t callbacks with safe managed abstractions while keeping method parity so it can be used as a starting point for C# implementations.
+
+How to use
+
+Create a new class implementing IConfigurableTileDecoder. If you don’t know how to start, see [MainTileDecoder](https://github.com/UtawareruDD/TileViewer.Plugin.Dotnet/blob/main/TileViewer.Plugin.Dotnet/Decoders/MainTileDecoder.cs) (demo).
+
+
+
 ## Build
 
 ### (1) Windows
