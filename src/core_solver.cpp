@@ -209,7 +209,17 @@ size_t TileSolver::PrepareTilebuf()
     {
         auto tile = wxImage(m_tilecfg.w, m_tilecfg.h);
         tile.InitAlpha();
-        m_tiles.push_back(tile);
+        if (tile.IsOk())
+        {
+            m_tiles.push_back(tile);
+        }
+        else
+        {
+            m_tiles.clear();
+            wxString msg = wxString::Format("[TileSolver::PrepareTilebuf] tile (%dX%d) is not ready, please reduce the tile size", m_tilecfg.w, m_tilecfg.h);
+            if(wxGetApp().m_usegui) wxMessageBox(msg, "render error", wxICON_ERROR);
+            return 0;
+        }
     }
     return datasize;
 }
@@ -411,16 +421,36 @@ bool TileSolver::Render()
     size_t tilew = m_tilecfg.w;
     size_t tileh = m_tilecfg.h;
     size_t ntile = m_tiles.size();
-    size_t imgw =  m_tilecfg.nrow * tilew;
+    size_t imgw =  nrow * tilew;
     size_t imgh = (ntile + nrow - 1) / nrow * tileh ;
 
     auto time_start = wxDateTime::UNow();
     wxBitmap bitmap(imgw, imgh);
     if(!bitmap.IsOk())
     {
-        m_bitmap = wxBitmap();
-        wxLogError("[TileSolver::Render] bitmap is not ready");
-        return false;
+        // try reduce the nrow number
+        nrow = ntile==1 ? 1 : ((int)sqrt(tilew * tileh * ntile) + tilew - 1) / tilew;
+        imgw = nrow * tilew;
+        imgh = (ntile + nrow - 1) / nrow * tileh;
+        bitmap = wxBitmap(imgw, imgh);
+        if(bitmap.IsOk())
+        {
+            m_tilecfg.nrow = nrow;
+            g_tilecfg.nrow = nrow;
+            if(wxGetApp().m_usegui)
+            {
+                sync_tilenav(&g_tilenav, &g_tilecfg);
+                NOTIFY_UPDATE_TILECFG();
+            }
+        }
+        else
+        {
+            m_bitmap = wxBitmap();
+            wxString msg = wxString::Format("[TileSolver::Render] bitmap (%dX%d) is not ready, please reduce the tile size or nrow number", imgw, imgh);
+            if(wxGetApp().m_usegui) wxMessageBox(msg, "render error", wxICON_ERROR);
+            wxLogError(msg);
+            return false;
+        }
     }
     bitmap.UseAlpha();
 
