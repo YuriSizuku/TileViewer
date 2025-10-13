@@ -265,7 +265,6 @@ jstr = json.encode({ 1, 2, 3, { x = 10 } })
 log(jstr)
 ```
 
-
 ### (4) .Net plugin
 
 [TileViewer.Plugin.Dotnet](https://github.com/UtawareruDD/TileViewer.Plugin.Dotnet)
@@ -274,8 +273,6 @@ This repository hosts a .NET 9 AOT-ready managed plugin skeleton for TileViewer.
 How to use
 
 Create a new class implementing IConfigurableTileDecoder. If you don’t know how to start, see [MainTileDecoder](https://github.com/UtawareruDD/TileViewer.Plugin.Dotnet/blob/main/TileViewer.Plugin.Dotnet/Decoders/MainTileDecoder.cs) (demo).
-
-
 
 ## Build
 
@@ -317,6 +314,24 @@ sh -c "CC=aarch64-w64-mingw32-clang WINDRES=aarch64-w64-mingw32-windres  BUILD_D
 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres BUILD_DIR=build_mingw64 bash script/build_mingw.sh
 # linux mingw x86 release (use gcc below 12 for xp)
 CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres BUILD_DIR=build_mingw32 BUILD_TYPE=MinSizeRel bash script/build_mingw.sh
+```
+
+If you want to compile in linux with wine, please use `wine-binfmt`
+
+```sh
+sudo apt-get install wine-binfmt
+sudo systemctl start systemd-binfmt
+sudo update-binfmts --import wine
+export WINEDEBUG=-all
+
+MINGW32XP_HOME=/path/to/mingw32xp
+export CC=$MINGW32XP_HOME/bin/gcc.exe
+export CXX=$MINGW32XP_HOME/bin/g++.exe
+export WINDRES=$MINGW32XP_HOME/bin/windres.exe
+
+# it might fail config (vswscanf) sometimes, try again might work
+# after config, make twice might not work (multiple target patterns as windows path format)
+BUILD_DIR=build_mingw32xp ./script/build_mingw.sh
 ```
 
 ### (2) Linux
