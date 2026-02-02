@@ -108,9 +108,9 @@ m2 --> c2
             "includePath": [
                 "${workspaceFolder}/src/**", 
                 "${workspaceFolder}/build_linux64/**", 
-                "${workspaceFolder}/depend/lua-5.4.7/src/**", 
-                "${workspaceFolder}/depend/cJSON-1.7.18/**", 
-                "${workspaceFolder}/depend/wxWidgets-3.2.6/include"
+                "${workspaceFolder}/depend/lua-5.4.8/src/**",
+                "${workspaceFolder}/depend/cJSON-1.7.19/**",
+                "${workspaceFolder}/depend/wxWidgets-3.2.9/include"
             ],
             "defines": ["__WXGTK__", "__LINUX__"],
             "compilerPath": "/usr/bin/gcc",
@@ -133,11 +133,11 @@ m2 --> c2
             "name": "Linux x64",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/build_linux64/TileViewer",
-            "args": ["--inpath", "sample/Nobara1.bmp",  "--width", "20", "--height", "18", "--bpp 2", "--nbytes 92", 
+            "program": "${workspaceRoot}/build/linux64/TileViewer",
+            "args": ["--inpath", "asset/sample/Nobara1.bmp",  "--width", "20", "--height", "18", "--bpp 2", "--nbytes 92",
                     "--plugin", "plugin/util_bmp.lua"],
             "stopAtEntry": false,
-            "cwd": "${workspaceRoot}/asset/",
+            "cwd": "${workspaceRoot}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -304,16 +304,16 @@ cd TileViewer
 bash script/fetch_depend.sh
 
 # windows llvm-mingw x64 debug
-sh -c "CC=x86_64-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw64 BUILD_TYPE=Debug script/build_mingw.sh"
+sh -c "CC=x86_64-w64-mingw32-clang BUILD_DIR=$(pwd)/build/mingw64 BUILD_TYPE=Debug script/build_mingw.sh"
 # windows llvm-mingw x86 release
-sh -c "CC=i686-w64-mingw32-clang BUILD_DIR=$(pwd)/build_mingw32 BUILD_TYPE=MinSizeRel script/build_mingw.sh"
+sh -c "CC=i686-w64-mingw32-clang BUILD_DIR=$(pwd)/build/mingw32 BUILD_TYPE=MinSizeRel script/build_mingw.sh"
 # windows llvm-mingw aarch64 debug
 sh -c "CC=aarch64-w64-mingw32-clang WINDRES=aarch64-w64-mingw32-windres  BUILD_DIR=$(pwd)/build_mingwa64 BUILD_TYPE=Debug script/build_mingw.sh"
 
 # linux mingw x64 debug
-CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres BUILD_DIR=build_mingw64 bash script/build_mingw.sh
+CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ WINDRES=x86_64-w64-mingw32-windres BUILD_DIR=build/mingw64 bash script/build_mingw.sh
 # linux mingw x86 release (use gcc below 12 for xp)
-CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres BUILD_DIR=build_mingw32 BUILD_TYPE=MinSizeRel bash script/build_mingw.sh
+CC=i686-w64-mingw32-gcc CXX=i686-w64-mingw32-g++ WINDRES=i686-w64-mingw32-windres BUILD_DIR=build/mingw32 BUILD_TYPE=MinSizeRel bash script/build_mingw.sh
 ```
 
 If you want to compile in linux with wine, please use `wine-binfmt`
@@ -369,10 +369,10 @@ cd TileViewer
 chmod +x script/*.sh
 
 # linux x64 debug
-CC=x86_64-linux-gnu-gcc CXX=x86_64-linux-gnu-g++ BUILD_DIR=build_linux64 BUILD_TYPE=Debug bash script/build_linux.sh
+CC=x86_64-linux-gnu-gcc CXX=x86_64-linux-gnu-g++ BUILD_DIR=build/linux64 BUILD_TYPE=Debug bash script/build_linux.sh
 
 # linux x86 debug
-CC=i686-linux-gnu-gcc CXX=i686-linux-gnu-g++ BUILD_DIR=build_linux32 BUILD_TYPE=Debug bash script/build_linux.sh
+CC=i686-linux-gnu-gcc CXX=i686-linux-gnu-g++ BUILD_DIR=build/linux32 BUILD_TYPE=Debug bash script/build_linux.sh
 ```
 
 linux cross build by docker

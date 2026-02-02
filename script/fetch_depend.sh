@@ -1,6 +1,6 @@
 function fetch_lua()
 {
-    LUA_VERSION=5.4.7
+    LUA_VERSION=5.4.8
     LUA_NAME=lua-$LUA_VERSION
     LUA_DIR=depend/$LUA_NAME
     if ! [ -d "$LUA_DIR" ]; then
@@ -13,7 +13,7 @@ function fetch_lua()
 
 function fetch_wxwidgets()
 {
-    WXWIDGETS_VERSION=3.2.6
+    WXWIDGETS_VERSION=3.2.9
     WXWIDGETS_NAME=wxWidgets-${WXWIDGETS_VERSION}
     WXWIDGETS_DIR=depend/$WXWIDGETS_NAME
     if ! [ -d "$WXWIDGETS_DIR" ]; then
@@ -26,7 +26,7 @@ function fetch_wxwidgets()
 
 function fetch_cjson()
 {
-    CJSON_VERSION=1.7.18
+    CJSON_VERSION=1.7.19
     CJSON_NAME=cJSON-${CJSON_VERSION}
     CJSON_DIR=depend/$CJSON_NAME
     if ! [ -d "$CJSON_DIR" ]; then

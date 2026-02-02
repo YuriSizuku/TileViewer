@@ -2,7 +2,7 @@
 if [ -z "$CC" ]; then CC=x86_64-w64-mingw32-clang; fi
 if [ -z "$CXX" ]; then CXX=${CC}++; fi
 if [ -z "$WINDRES" ]; then WINDRES=windres; fi
-if [ -z "$BUILD_DIR" ]; then BUILD_DIR=$(pwd)/build_mingw64; fi
+if [ -z "$BUILD_DIR" ]; then BUILD_DIR=$(pwd)/build/mingw64; fi
 if [ -z "$BUILD_TYPE" ]; then BUILD_TYPE=Debug; fi
 
 CORE_NUM=$(cat /proc/cpuinfo | grep -c ^processor)

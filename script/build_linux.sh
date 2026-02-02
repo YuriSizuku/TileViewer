@@ -1,7 +1,7 @@
 # default for mingw64
 if [ -z "$CC" ]; then CC=gcc; fi
 if [ -z "$CXX" ]; then CXX=g++; fi
-if [ -z "$BUILD_DIR" ]; then BUILD_DIR=$(pwd)/build_linux64; fi
+if [ -z "$BUILD_DIR" ]; then BUILD_DIR=$(pwd)/build/linux64; fi
 if [ -z "$BUILD_TYPE" ]; then BUILD_TYPE=Debug; fi
 
 CORE_NUM=$(cat /proc/cpuinfo | grep -c ^processor)

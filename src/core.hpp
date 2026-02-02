@@ -1,4 +1,3 @@
-
 #ifndef _CORE_APP_H
 #define _CORE_APP_H
 #include <wx/wx.h>
@@ -7,7 +6,7 @@
 #include <wx/dynlib.h>
 #include "plugin.h"
 
-#define APP_VERSION "v0.3.5"
+#define APP_VERSION "v0.3.6"
 
 extern struct tilecfg_t g_tilecfg;
 

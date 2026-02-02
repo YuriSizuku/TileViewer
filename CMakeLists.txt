@@ -66,7 +66,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 # add lua
-set(LUA_CODE_DIR depend/lua-5.4.7)
+set(LUA_CODE_DIR depend/lua-5.4.8)
 add_subdirectory(${LUA_CODE_DIR})
 
 # add cjson
@@ -75,11 +75,11 @@ set(ENABLE_CJSON_TEST OFF)
 set(ENABLE_CUSTOM_COMPILER_FLAGS OFF)
 set(ENABLE_HIDDEN_SYMBOLS ON)
 set(BUILD_SHARED_LIBS OFF)
-set(CJSON_CODE_DIR depend/cJSON-1.7.18)
+set(CJSON_CODE_DIR depend/cJSON-1.7.19)
 add_subdirectory(${CJSON_CODE_DIR})
 
 # add wxwidgets
-set(WXWIDGETS_CODE_DIR depend/wxWidgets-3.2.6)
+set(WXWIDGETS_CODE_DIR depend/wxWidgets-3.2.9)
 set(wxBUILD_SHARED OFF)
 set(INGORED_WARNINGS  "-Wno-unused-command-line-argument -Wno-deprecated-declarations -Wno-inconsistent-missing-override -Wno-cast-calling-convention -Wno-format"
 )

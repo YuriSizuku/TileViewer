@@ -5,4 +5,5 @@
 .vscode/settings.json
 depend
 
+build
 build_**/*

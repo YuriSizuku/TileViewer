@@ -1,7 +1,7 @@
 # default for mingw64
 if [ -z "$CC" ]; then CC=clang; fi
 if [ -z "$CXX" ]; then CXX=clang++; fi
-if [ -z "$BUILD_DIR" ]; then BUILD_DIR=$(pwd)/build_darwin; fi
+if [ -z "$BUILD_DIR" ]; then BUILD_DIR=$(pwd)/build/darwin; fi
 if [ -z "$BUILD_TYPE" ]; then BUILD_TYPE=Debug; fi
 
 # CORE_NUM=$(cat /proc/cpuinfo | grep -c ^processor)

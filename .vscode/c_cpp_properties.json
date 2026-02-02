@@ -6,12 +6,11 @@
         {
             "name": "Win64",
             "includePath": [
-                "${workspaceFolder}/src/**", 
-                "${workspaceFolder}/build_mingw64/**", 
-                "${workspaceFolder}/depend/lua-5.4.7/src/**", 
-                "${workspaceFolder}/depend/cJSON-1.7.18/**", 
-                "${workspaceFolder}/depend/stb-lastest/**",
-                "${workspaceFolder}/depend/wxWidgets-3.2.6/include"
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/build/mingw64/**",
+                "${workspaceFolder}/depend/lua-5.4.8/src/**",
+                "${workspaceFolder}/depend/cJSON-1.7.19/**",
+                "${workspaceFolder}/depend/wxWidgets-3.2.9/include"
 
             ],
             "defines": [
@@ -25,12 +24,11 @@
         {
             "name": "Linux64",
             "includePath": [
-                "${workspaceFolder}/src/**", 
-                "${workspaceFolder}/build_mingw64/**", 
-                "${workspaceFolder}/depend/lua-5.4.7/src/**", 
-                "${workspaceFolder}/depend/cJSON-1.7.18/**", 
-                "${workspaceFolder}/depend/stb-lastest/**",
-                "${workspaceFolder}/depend/wxWidgets-3.2.6/include"
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/build_mingw64/**",
+                "${workspaceFolder}/depend/lua-5.4.8/src/**",
+                "${workspaceFolder}/depend/cJSON-1.7.19/**",
+                "${workspaceFolder}/depend/wxWidgets-3.2.9/include"
 
             ],
             "defines": [

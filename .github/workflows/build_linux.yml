@@ -1,24 +1,27 @@
 name: build linux
 on:
   push: {tags:  ['v*']} #  Push events to matching v*, i.e. v1.0, v20.15.10
-  pull_request: 
-  
+  pull_request:
+
 permissions:
   contents: write
 
 jobs:
-  build_linux_local:
+  build_linux:
     strategy:
-      matrix: 
-        arch: [{prefix: i386, suffix: x86}, {prefix: x86_64, suffix: x64}]
+      matrix:
+        arch:
+          - {prefix: i386, suffix: x86, image: ubuntu-24.04}
+          - {prefix: x86_64, suffix: x64, image: ubuntu-24.04}
+          - {prefix: armhf, suffix: arm32, image: ubuntu-24.04-arm}
+          - {prefix: aarch64, suffix: arm64, image: ubuntu-24.04-arm}
 
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.arch.image }}
     steps:
     - uses: actions/checkout@v4
 
     - name: init enviroment
       run: |
-        sudo apt-get -qq -y install qemu-user-static binfmt-support
         sudo apt-get -qq -y install p7zip-full git cmake
 
     - name: build ${{ matrix.arch.suffix }}
@@ -28,7 +31,7 @@ jobs:
         export BUILD_DIR=build
         export BUILD_TYPE=MinSizeRel
         bash script/build_docker.sh
-    
+
     - name: prepare release
       run: |
         readelf -h build/TileViewer
@@ -36,49 +39,7 @@ jobs:
         if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
           mv build/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
         fi
-      
-    - name: create release
-      uses: ncipollo/release-action@v1
-      if: github.event_name == 'push'
-      with:
-        artifacts: "TileViewer_*"
-        allowUpdates: "true"
-        token: ${{ secrets.GITHUB_TOKEN }}
 
-  build_linux_cross:
-    strategy:
-      matrix: 
-        arch: [{prefix: armhf, suffix: arm32, cache: build_linuxa32_docker}, 
-               {prefix: aarch64, suffix: arm64, cache: build_linuxa64_docker}]
-
-    runs-on: ubuntu-24.04
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: init enviroment
-      run: |
-        sudo apt-get -qq -y install qemu-user-static binfmt-support
-        sudo apt-get -qq -y install p7zip-full git cmake
-        curl -fsSL https://github.com/YuriSizuku/TileViewer/releases/download/v0.1/${{ matrix.arch.cache }}.tar.xz -O
-        tar xjf ${{ matrix.arch.cache }}.tar.xz
-        ls -la ${{ matrix.arch.cache }}/
-
-    - name: build ${{ matrix.arch.suffix }}
-      run: |        
-        export DOCKER_ARCH=${{ matrix.arch.prefix }}
-        export BUILD_DIR=${{ matrix.arch.cache }} # this can not change, as the docker cache is here
-        export BUILD_TYPE=MinSizeRel
-        export USE_BUILDX=1
-        bash script/build_docker.sh
-    
-    - name: prepare release
-      run: |
-        readelf -h ${{ matrix.arch.cache }}/TileViewer
-        readelf -a ${{ matrix.arch.cache }}/TileViewer | grep NEEDED
-        if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
-          mv ${{ matrix.arch.cache }}/TileViewer TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_linux
-        fi
-      
     - name: create release
       uses: ncipollo/release-action@v1
       if: github.event_name == 'push'

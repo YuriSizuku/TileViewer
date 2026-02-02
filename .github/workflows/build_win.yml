@@ -1,8 +1,8 @@
 name: build windows
 on:
   push: {tags:  ['v*']} #  Push events to matching v*, i.e. v1.0, v20.15.10
-  pull_request: 
-  
+  pull_request:
+
 permissions:
   contents: write
 
@@ -12,7 +12,7 @@ env:
 jobs:
   build_llvmmingw:
     strategy:
-      matrix: 
+      matrix:
         arch: [{prefix: i686, suffix: x86}, {prefix: x86_64, suffix: x64}, {prefix: x86_64, suffix: x64d}]
 
     runs-on: ubuntu-24.04
@@ -24,7 +24,7 @@ jobs:
         sudo apt-get -y -qq install p7zip-full git make cmake
         curl -fsSL https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64.tar.xz -o /tmp/llvm-mingw.tar.xz
         tar xf /tmp/llvm-mingw.tar.xz -C /tmp
-        _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64 
+        _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64
         sudo mv -f ${_tmppath} $LLVMMINGW_HOME
 
     - name: build ${{ matrix.arch.suffix }}
@@ -40,13 +40,13 @@ jobs:
           export BUILD_TYPE=MinSizeRel
         fi
         bash script/build_mingw.sh
-    
+
     - name: prepare release
       run: |
         if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
           mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_win.exe
         fi
-      
+
     - name: create release
       uses: ncipollo/release-action@v1
       if: github.event_name == 'push'
@@ -57,10 +57,10 @@ jobs:
 
   build_mingw:
     strategy:
-      matrix: 
+      matrix:
         arch: [{prefix: i686, suffix: x86_xp}]
 
-    runs-on: ubuntu-22.04 # 24.04 gcc-13 might not worked ? 
+    runs-on: ubuntu-22.04 # 24.04 gcc-13 might not worked ?
     steps:
     - uses: actions/checkout@v4
 
@@ -80,15 +80,14 @@ jobs:
         export BUILD_DIR=build
         export BUILD_TYPE=MinSizeRel
         bash script/build_mingw.sh
-    
+
     - name: prepare release
       run: |
         if [[ ! "${{  github.ref_name }}" =~ "merge" ]]; then
           mv build/TileViewer.exe TileViewer_${{  github.ref_name }}_${{ matrix.arch.suffix }}_win.exe
         fi
-        cd asset; 7z a plugin.zip plugin ; cd ..
-        mv asset/plugin.zip plugin.zip 
-      
+        7z a plugin.zip plugin
+
     - name: create release
       uses: ncipollo/release-action@v1
       if: github.event_name == 'push'
