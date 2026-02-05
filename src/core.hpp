@@ -16,13 +16,13 @@ class ConfigWindow;
 class TileSolver
 {
 
-public: 
+public:
     TileSolver();
     bool LoadDecoder();
     bool LoadDecoder(wxFileName pluginfile);
     bool UnloadDecoder();
     wxString LoadPlugincfg();
-    
+
     size_t Open(wxFileName infile = wxFileName()); // file -> m_filebuf
     int Decode(struct tilecfg_t *tilecfg, wxFileName pluginfile = wxFileName()); // m_filebuf -> m_tiles
     bool Render(); // m_tiles -> m_bitmap
@@ -39,7 +39,7 @@ public:
     wxFileName m_pluginfile;
     wxFileName m_plugincfgfile;
     wxString m_pluginparam; // override default value for plugincfg
-    wxString m_plugincfg; 
+    wxString m_plugincfg;
     wxMemoryBuffer m_filebuf;
     wxVector<wxImage> m_tiles; // use wxImage to store tiles, because wxBitmap hard to set pixel
     wxBitmap m_bitmap;
@@ -59,22 +59,21 @@ public:
     TileWindow *m_tilewindow;
     ConfigWindow *m_configwindow;
     wxLogWindow *m_logwindow;
-    
+
     // for solve tile
     int m_pluginindex;
-    wxVector<wxFileName> m_pluginfiles; 
+    wxVector<wxFileName> m_pluginfiles;
     TileSolver m_tilesolver;
     bool m_usegui;
 
     // others
     void* m_filewatcher = nullptr;
 
-private:    
+private:
     virtual bool OnInit() wxOVERRIDE;
     virtual void OnInitCmdLine(wxCmdLineParser& parser) wxOVERRIDE;
     virtual bool OnCmdLineParsed(wxCmdLineParser& parser) wxOVERRIDE;
     virtual void OnEventLoopEnter(wxEventLoopBase *loop) wxOVERRIDE;
-
 };
 
 wxDECLARE_APP(MainApp);

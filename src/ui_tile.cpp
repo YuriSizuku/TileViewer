@@ -409,7 +409,7 @@ drop_file_failed:
     reset_tilenav(&g_tilenav);
     NOTIFY_UPDATE_TILENAV();
     NOTIFY_UPDATE_TILES(); // notify all
-    wxMessageBox(wxString::Format("open %s failed !", infile.GetFullPath()), "error", wxICON_ERROR);
+    // wxMessageBox(wxString::Format("open %s failed !", infile.GetFullPath()), "error", wxICON_ERROR);
 }
 
 void TileWindow::OnUpdate(wxCommandEvent &event)

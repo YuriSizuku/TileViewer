@@ -9,7 +9,7 @@
 #include "plugin.h"
 
 static char s_msg[4096] = {0};
-static const char* s_ui = 
+static const char* s_ui =
 "{\"name\" : \"plugin_default\",\
 \"plugincfg\" : [\
     {\"name\" : \"endian\",\"type\" : \"enum\", \"help\" : \"the bit sequence\", \"options\" : [\"little\", \"big\"], \"value\": 0}, \
@@ -17,16 +17,16 @@ static const char* s_ui =
     {\"name\" : \"bgr\",\"type\" : \"bool\", \"help\" : \"use bgr sequence\", \"value\": 0}, \
     {\"name\" : \"flipx\",\"type\" : \"bool\", \"help\" : \"horizon flip tile\", \"value\": 0}, \
     {\"name\" : \"flipy\",\"type\" : \"bool\", \"help\" : \"vertical flip tile\", \"value\": 0} \
-]}"; 
+]}";
 
 static struct
 {
     bool endian_big;
-    bool channel_argb; 
+    bool channel_argb;
     bool channel_abgr;
     bool flipx;
     bool flipy;
-}s_plugincfg = {.endian_big=false, .channel_argb=false, 
+}s_plugincfg = {.endian_big=false, .channel_argb=false,
     .channel_abgr=false, .flipx=false, .flipy=false};
 
 PLUGIN_STATUS STDCALL decode_open_default(const char *name, void **context)
@@ -48,7 +48,7 @@ PLUGIN_STATUS STDCALL decode_close_default(void *context)
 PLUGIN_STATUS STDCALL decode_sendui_default(void *context, const char **buf, size_t *bufsize)
 {
     s_msg[0] = '\0';
-    
+
     *buf = s_ui;
     *bufsize = strlen(s_ui);
     sprintf(s_msg, "[plugin_builtin::sendui] send %zu bytes", *bufsize);
@@ -105,7 +105,7 @@ decode_recvui_default_fail:
     return STATUS_FAIL;
 }
 
-bool decode_offset_default(void *context, 
+bool decode_offset_default(void *context,
     const struct tilepos_t *pos, const struct tilefmt_t *fmt, size_t *offset)
 {
     // no safety check for pointer here
@@ -122,8 +122,8 @@ bool decode_offset_default(void *context,
 }
 
 PLUGIN_STATUS STDCALL decode_pixel_default(void *context,
-    const uint8_t* data, size_t datasize, 
-    const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
+    const uint8_t* data, size_t datasize,
+    const struct tilepos_t *pos, const struct tilefmt_t *fmt,
     struct pixel_t *pixel, bool remain_index)
 {
     if(s_plugincfg.flipx)
@@ -139,7 +139,7 @@ PLUGIN_STATUS STDCALL decode_pixel_default(void *context,
         ((struct tilepos_t *)pos)->y = y;
     }
 
-    // find decode offset 
+    // find decode offset
     uint8_t bpp = fmt->bpp;
     size_t offset = 0;
     if(!decode_offset_default(context, pos, fmt, &offset)) return STATUS_RANGERROR;
@@ -164,8 +164,8 @@ PLUGIN_STATUS STDCALL decode_pixel_default(void *context,
                 pixel->d = data[offset] | data[offset+1] << 8;
             }
             else
-            {   
-                pixel->r = (data[offset] & 0b11111000) > 0x3; 
+            {
+                pixel->r = (data[offset] & 0b11111000) > 0x3;
                 pixel->g = (data[offset] & 0b00000111) | ((data[offset+1] & 0b11100000) >> 5) << 3;
                 pixel->b = data[offset+1] & 0b00011111;
                 pixel->a = 255;
@@ -193,12 +193,12 @@ PLUGIN_STATUS STDCALL decode_pixel_default(void *context,
             size_t nbytes = calc_tile_nbytes(fmt);
             int pixel_idx = pos->x + pos->y * fmt->w;
             offset =  pos->i * nbytes + pixel_idx / 8 * 3; // offset is incresed by 3
-            uint8_t bitshift = (pixel_idx % 8) * bpp; 
+            uint8_t bitshift = (pixel_idx % 8) * bpp;
             if(s_plugincfg.endian_big)
             {
                 bitshift = 21 - bitshift; // bit big endian, 00011122 23334445 55666777
             }
-            uint32_t mask = ((1<<bpp) - 1) << bitshift; 
+            uint32_t mask = ((1<<bpp) - 1) << bitshift;
             uint32_t d3 = *(uint32_t*)(data + offset) & 0x00ffffff;
             if(s_plugincfg.endian_big)
             {
@@ -209,7 +209,7 @@ PLUGIN_STATUS STDCALL decode_pixel_default(void *context,
         else if (bpp < 8) // index4, index2, index1
         {
             int pixel_idx = pos->x + pos->y * fmt->w;
-            uint8_t bitshift = (pixel_idx % (8 / bpp)) * bpp; 
+            uint8_t bitshift = (pixel_idx % (8 / bpp)) * bpp;
             if(s_plugincfg.endian_big)
             {
                 bitshift = 8 - bpp  - bitshift;
@@ -217,9 +217,9 @@ PLUGIN_STATUS STDCALL decode_pixel_default(void *context,
             uint8_t mask = ((1<<bpp) - 1) << bitshift;
             d = (data[offset] & mask) >> bitshift;
         }
-        
+
         // chose either use index value or linear palette
-        if(remain_index) 
+        if(remain_index)
         {
             pixel->d = d;
         }
@@ -234,10 +234,11 @@ PLUGIN_STATUS STDCALL decode_pixel_default(void *context,
 }
 
 struct tile_decoder_t g_decoder_default = {
-    .version = 340, .size = sizeof(struct tile_decoder_t), 
+    .version = TILE_DECODER_VERSION(0, 3, 6, 0),
+    .size = sizeof(struct tile_decoder_t),
     .msg = s_msg, .context = NULL,
-    .open = decode_open_default, .close = decode_close_default, 
-    .decodeone = decode_pixel_default, .decodeall = NULL, 
-    .pre = NULL, .post=NULL, 
-    .sendui=decode_sendui_default, .recvui=decode_recvui_default, 
+    .open = decode_open_default, .close = decode_close_default,
+    .decodeone = decode_pixel_default, .decodeall = NULL,
+    .pre = NULL, .post=NULL,
+    .sendui=decode_sendui_default, .recvui=decode_recvui_default,
 };

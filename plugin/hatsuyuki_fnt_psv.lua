@@ -40,7 +40,7 @@ g_glphylist = {} -- list for render tiles, remove duplicate
 ---@param outdata lightuserdata
 ---@param inoffset? integer
 ---@param outoffset? integer
----@param offsetbits? integer
+---@param lenbits? integer
 ---@return integer
 function lz77_decode(indata, outdata, insize, inoffset, outoffset, lenbits)
 --[[

@@ -1,18 +1,18 @@
 /**
  * defines some structue or values for plugin
  *   developed by devseed
- * 
+ *
  *  workflow:
  *      open -> (sendui) -> ||(recvui) -> (pre) -> decode -> (post) :|| -> close
- * 
+ *
  *  property format:
  *      (declear config either by sendui or xxx.json file)
  *   {
- *       "name": "xxx plugin", 
- *       "description": "plugin for xxx", 
- *       "version": "v0.3.4", 
- *       "plugincfg" : ["name": "", "type": "enum|string|int|bool", 
- *                     "options": ["option1", "options2"], "help": "option help" 
+ *       "name": "xxx plugin",
+ *       "description": "plugin for xxx",
+ *       "version": "v0.3.4",
+ *       "plugincfg" : ["name": "", "type": "enum|string|int|bool",
+ *                     "options": ["option1", "options2"], "help": "option help"
  *                     "value"="current setting"]
  *   }
  */
@@ -36,7 +36,7 @@ extern "C" {
 #define REQUIRED
 #undef STDCALL
 #define STDCALL
-#if 0 
+#if 0
 #if defined(_MSC_VER) || defined(__TINYC__)
 #define STDCALL __stdcall
 #else // warning: ‘stdcall’ attribute ignored [-Wattributes]
@@ -51,7 +51,7 @@ struct pixel_t
         struct
         {
            uint8_t r, g, b, a;
-        };    
+        };
         uint32_t d;
         uint8_t v[4];
     };
@@ -60,7 +60,7 @@ struct pixel_t
 struct tilepos_t
 {
     int i; // idx th tile
-    int x, y; // x, y coordinate in tile  
+    int x, y; // x, y coordinate in tile
 };
 
 struct tilefmt_t
@@ -77,7 +77,7 @@ struct tilecfg_t
     uint16_t nrow;   // how many tiles in a row
     union
     {
-        struct 
+        struct
         {
             uint32_t w, h;  // tile width, tile height
             uint8_t bpp;    // tile bpp
@@ -108,7 +108,7 @@ struct tilestyle_t
 {
     float scale; // tile scale
     long style;
-    bool reset_scale; 
+    bool reset_scale;
 };
 
 inline int calc_tile_nbytes(const struct tilefmt_t *fmt)
@@ -121,14 +121,13 @@ inline int calc_tile_nbytes(const struct tilefmt_t *fmt)
 
 typedef enum _PLUGIN_STATUS
 {
-    STATUS_OK = 0, 
-    STATUS_FAIL, 
-    STATUS_OPENERROR, // open decoder file failed 
+    STATUS_OK = 0,
+    STATUS_FAIL,
+    STATUS_OPENERROR, // open decoder file failed
     STATUS_SCRIPTERROR, // parsing decoder script failed
-    STATUS_CALLBACKERROR,  // finding decoder callback faild
     STATUS_FORMATERROR, // target format error
     STATUS_RANGERROR, // pixel or index out of range
-    STATUS_UNKNOW 
+    STATUS_UNKNOW
 }PLUGIN_STATUS;
 
 #define PLUGIN_SUCCESS(x) (x==STATUS_OK)
@@ -139,7 +138,6 @@ inline const char *decode_status_str(PLUGIN_STATUS x)
     if(x==STATUS_FAIL) return "STATUS_FAIL";
     if(x==STATUS_OPENERROR) return "STATUS_OPENERROR, open decoder file failed ";
     if(x==STATUS_SCRIPTERROR) return "STATUS_SCRIPTERROR, parsing decoder script failed";
-    if(x==STATUS_CALLBACKERROR) return "STATUS_CALLBACKERROR, finding decoder callback faild";
     if(x==STATUS_FORMATERROR) return "STATUS_FORMATERROR, target format error";
     if(x==STATUS_RANGERROR) return "STATUS_RANGERROR, pixel or index out of range";
     return "STATUS_UNKNOW";
@@ -157,14 +155,14 @@ typedef PLUGIN_STATUS (*STDCALL CB_decode_open)(const char *name, void **context
 typedef PLUGIN_STATUS (*STDCALL CB_decode_close)(void *context);
 
 /**
- *  decode 1 pixel 
+ *  decode 1 pixel
  * @param data, corrent decoding data
  * @param pixel out a uint32_t value
  * @param remain_index keep the origin index
  */
-typedef PLUGIN_STATUS (*STDCALL CB_decode_pixel)(void *context, 
-    const uint8_t* data, size_t datasize, 
-    const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
+typedef PLUGIN_STATUS (*STDCALL CB_decode_pixel)(void *context,
+    const uint8_t* data, size_t datasize,
+    const struct tilepos_t *pos, const struct tilefmt_t *fmt,
     struct pixel_t *pixel, bool remain_index);
 
 /**
@@ -174,16 +172,16 @@ typedef PLUGIN_STATUS (*STDCALL CB_decode_pixel)(void *context,
  * @param npixel how many pixels for all tiles
  * @param remain_index keep the origin index
  */
-typedef PLUGIN_STATUS (*STDCALL CB_decode_pixels)(void *context, 
-    const uint8_t* data, size_t datasize, 
-    const struct tilefmt_t *fmt, struct pixel_t *pixels[], 
+typedef PLUGIN_STATUS (*STDCALL CB_decode_pixels)(void *context,
+    const uint8_t* data, size_t datasize,
+    const struct tilefmt_t *fmt, struct pixel_t *pixels[],
     size_t *npixel, bool remain_index);
 
 /**
  * decode pre, post processing
  * @param rawdata rawdata of the file
  */
-typedef PLUGIN_STATUS (*STDCALL CB_decode_parse)(void *context, 
+typedef PLUGIN_STATUS (*STDCALL CB_decode_parse)(void *context,
     const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg);
 
 /**
@@ -199,9 +197,13 @@ typedef PLUGIN_STATUS (*STDCALL CB_decode_recv)(void *context, const char *buf, 
 /**
  * interface for C plugin
  */
+
+#define TILE_DECODER_VERSION(major, minor, patch, build) \
+    (uint32_t)((major<<24) + (minor<<16) + (patch<<8) + build)
+
 struct tile_decoder_t
 {
-    uint32_t version; // required tileviewer version, for example v0.3.4 = 340
+    uint32_t version; // required tileviewer version
     uint32_t size; // this structure size
     void* context; // opaque pointer for decoder context, user defined struct
     const char *msg; // for passing log informations to log window

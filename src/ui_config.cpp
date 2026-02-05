@@ -110,7 +110,7 @@ void ConfigWindow::SaveTilecfg(struct tilecfg_t &cfg)
 void ConfigWindow::SetPlugincfg(wxString& text)
 {
     auto plugincfg = m_pg->GetPropertyByName("plugincfg");
-    wxLogMessage(wxString::Format("[ConfigWindow::SetPlugincfg] %s", text));
+    // wxLogMessage(wxString::Format("[ConfigWindow::SetPlugincfg] %s", text));
     cJSON *root = cJSON_Parse(text.mb_str());
     if(root)
     {

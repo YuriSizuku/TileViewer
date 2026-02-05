@@ -2,16 +2,16 @@
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/yurisizuku/TileViewer?color=green&label=TileViewer) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_win.yml?label=win(x86|x64)&style=flat-square) ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/YuriSizuku/TileViewer/build_linux.yml?label=linux(x86|x64|arm32|arm64)&style=flat-square)
 
-☘️ A cross platform tool to visulize and analyze texture (usually used for console game font) by tiles.  It is inspired by `Crystal Tile 2`, and more flexible with custom lua script or C plugin (for more complex situation, such as swizzle) and command line support.  
+☘️ A cross platform tool to visulize and analyze texture (usually used for console game font) by tiles.  It is inspired by `Crystal Tile 2`, and more flexible with custom lua script or C plugin (for more complex situation, such as swizzle) and command line support.
 
-Also, it supports for droping file, save decoded image and show cursor moving in tiles.  Futhermore, the window is flexible for changing size and support for zooming in and out with converting the client coordinate to logical coordinate.  
+Also, it supports for droping file, save decoded image and show cursor moving in tiles.  Futhermore, the window is flexible for changing size and support for zooming in and out with converting the client coordinate to logical coordinate.
 
-The main purpose is for analyzing game font or textures.  See [FontDB](https://github.com/YuriSizuku/TileViewer/wiki/Font-Database) and [TexDB](https://github.com/YuriSizuku/TileViewer/wiki/Texture-Database) in detail.  
+The main purpose is for analyzing game font or textures.  See [FontDB](https://github.com/YuriSizuku/TileViewer/wiki/Font-Database) and [TexDB](https://github.com/YuriSizuku/TileViewer/wiki/Texture-Database) in detail.
 
 ![tile_test1](asset/picture/tile_test1.png)
 (example of decoding a 2bpp tile font)
 
-In addition, you can use it for data visulization tool as well.  
+In addition, you can use it for data visulization tool as well.
 
 ![tile_test3](asset/picture/tile_test3.png)
 (example of data visulization)
@@ -21,8 +21,8 @@ In addition, you can use it for data visulization tool as well.
 ### (1) cmd
 
 ```sh
-Usage: TileViewer [-n] [-i <str>] [-o <str>] [-p <str>] 
-    [--start <num>] [--size <num>] [--nrow <num>] 
+Usage: TileViewer [-n] [-i <str>] [-o <str>] [-p <str>]
+    [--start <num>] [--size <num>] [--nrow <num>]
     [--width <num>] [--height <num>] [--bpp <num>] [--nbytes <num>] [-h] [--verbose]
   -n, --nogui         decode tiles without gui
   -i, --inpath=<str>  tile file inpath
@@ -54,7 +54,7 @@ TileViewer --width 24 --height 24 --bpp 2 --pluginparam "{'endian': 1}" --inpath
 
 ### (2) gui
 
-It will automaticly search plugins in `./plugin` path. You can use these shortcut to control the view.  
+It will automaticly search plugins in `./plugin` path. You can use these shortcut to control the view.
 
 ```sh
 H|J|K|L cursor moving in tile view
@@ -106,8 +106,8 @@ m2 --> c2
         {
             "name": "Linux x64",
             "includePath": [
-                "${workspaceFolder}/src/**", 
-                "${workspaceFolder}/build_linux64/**", 
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/build_linux64/**",
                 "${workspaceFolder}/depend/lua-5.4.8/src/**",
                 "${workspaceFolder}/depend/cJSON-1.7.19/**",
                 "${workspaceFolder}/depend/wxWidgets-3.2.9/include"
@@ -160,9 +160,9 @@ m2 --> c2
 
 ### (2) C plugin
 
-Implement these function for C decoder plugin, then export either struct `decoder` or function `get_decoder`, see `src/plugin.h` in detail.  
+Implement these function for C decoder plugin, then export either struct `decoder` or function `get_decoder`, see `src/plugin.h` in detail.
 
-Here's the workflow for the plugin `open -> (sendui) -> ||(recvui) -> (pre) -> decode -> (post) :|| -> close`.  
+Here's the workflow for the plugin `open -> (sendui) -> ||(recvui) -> (pre) -> decode -> (post) :|| -> close`.
 
 ``` C
 
@@ -187,7 +187,7 @@ plugincfg example in built-in
 
 ```json
 {
-    "plugincfg": 
+    "plugincfg":
     [
         {"name" : "endian", "type": "enum", "options":["little", "big"], "value": 1}
     ]
@@ -205,7 +205,7 @@ gcc -g -Idepend/stb-lastest -Isrc -fPIC -fvisibility=hidden -static-libgcc -shar
 
 ### (3) Lua plugin
 
-Implement `decode_pre`,  `decode_pixel` and `decode_post` to decode tiles. You can use capi functions as below, usually in `decode_pre` to reduce overhead. See `asset/plugin/` in detail.  
+Implement `decode_pre`,  `decode_pixel` and `decode_post` to decode tiles. You can use capi functions as below, usually in `decode_pre` to reduce overhead. See `asset/plugin/` in detail.
 
 As for debugging lua script, one way is to use `log` to print values in logwindow; the other way is to redirct `stderr` to file, for example `TileViewer.exe -i c005.spc.dec --plugin plugin/narcissus_lbg_psp.lua >plugin_log.txt 2>&1`
 
@@ -222,7 +222,7 @@ Notice that the **lua index is start from 1** !
 ---@field bpp integer
 ---@field nbytes integer
 
--- capis declear 
+-- capis declear
 log = log -- use log(...) to redirect to log window
 
 ---@type fun() : tilecfg_t
@@ -239,7 +239,7 @@ function get_rawsize() return 0 end -- capi
 function get_rawdata(offset, size) return "" end --capi
 
 -- c callbacks implement
----@type fun() : boolean 
+---@type fun() : boolean
 function decode_pre() -- callback for pre process
     -- implement your code here
     return true
@@ -250,14 +250,14 @@ function decode_pixel(i, x, y) -- callback for decoding tile i, (x, y) position
     -- implement your code here
 end
 
----@type fun() : boolean 
+---@type fun() : boolean
 function decode_post() -- callback for post process
     -- implement your code here
     return true
 end
 ```
 
-You can also load extern lualib, for example, put [json.lua](https://github.com/rxi/json.lua) into `plugin\lualib` then load this plugin by `require`.  
+You can also load extern lualib, for example, put [json.lua](https://github.com/rxi/json.lua) into `plugin\lualib` then load this plugin by `require`.
 
 ``` lua
 json = require "plugin.lualib.json"
@@ -285,7 +285,7 @@ echo "## init_llvmmingw ${LLVMMINGW_HOME}"
 if [ -n "$(uname -a | grep Linux)" ]; then
     curl -fsSL https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64.tar.xz -o /tmp/llvm-mingw.tar.xz
     tar xf /tmp/llvm-mingw.tar.xz -C /tmp
-    _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64 
+    _tmppath=/tmp/llvm-mingw-20240619-msvcrt-ubuntu-20.04-x86_64
     mv -f ${_tmppath} $LLVMMINGW_HOME || echo "try to use sudo mv to $LLVMMINGW_HOME" && sudo mv -f ${_tmppath} $LLVMMINGW_HOME
     rm -rf /tmp/llvm-mingw.tar.xz
 else
@@ -350,7 +350,7 @@ sudo apt-get -y update
 sudo apt-get -y install gcc-multilib g++-multilib gdb-multiarch
 sudo apt-get -y install crossbuild-essential-i386
 sudo apt-get -y install libc6:i386 libx11-dev:i386 libxtst-dev:i386 libsm-dev:i386
-sudo apt-get -y install libgtk-3-dev:i386 
+sudo apt-get -y install libgtk-3-dev:i386
 
 # for cross armhf
 sudo dpkg --add-architecture armhf
@@ -358,7 +358,7 @@ sudo apt-get -y update
 sudo apt-get -y install crossbuild-essential-armhf
 sudo apt-get -y install crossbuild-essential-arm64
 sudo apt-get -y install libc6:armhf libx11-dev:armhf libxtst-dev:armhf libsm-dev:armhf
-sudo apt-get -y install libgtk-3-dev:armhf 
+sudo apt-get -y install libgtk-3-dev:armhf
 ```
 
 linux local build
@@ -413,7 +413,7 @@ chmod +x script/*.sh
 
 * Core
   * [x] redirect log message to log window
-  * [x] implement command lines  
+  * [x] implement command lines
   * [x] decoder interface with different plugin (builtin, lua, C)
   * [x] automaticaly reload the plugin when it changes ([v0.3.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.2))
   * [x] use json to transfer infromation from ui to decoder
@@ -422,7 +422,7 @@ chmod +x script/*.sh
   * [x] plugin built-in decoder, ([v0.1](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
     * [x] 2|4|8 bpp, little endian
     * [x] 3bpp (3 bytes for 8 pixels) ([v0.3.3.7](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.7))
-    * [x] 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)  
+    * [x] 16bpp(rgb565), 24bpp(rgb888), 32bpp(rgba8888)
     * [x] plugincfg, endian, channel_first, bgr, flip ([v0.3.4.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3.3.7))
   * [x] plugin lua decoder ([v0.2](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.2))
     * [x] set/get raw data, set/get tilecfg, tilenav
@@ -431,7 +431,7 @@ chmod +x script/*.sh
   * [x] plugin C decoder (dll, so) ([v0.3](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.3))
 
 * UI
-  * [x] start up with hello world, cmake structure for the project  
+  * [x] start up with hello world, cmake structure for the project
   * [x] inital layout, left config view, right tile view, top menu, bottom status
   * [x] select and render tiles in real time when format changes
   * [x] scale render tile images (zoom in/out) ([v0.1.5](https://github.com/YuriSizuku/TileViewer/releases/tag/v0.1.2))
@@ -451,7 +451,7 @@ chmod +x script/*.sh
 
 ## Credit
 
-[wxWidget](https://www.wxwidgets.org/)  
-[Lua](https://www.lua.org/)  
-[cJSON](https://github.com/DaveGamble/cJSON)  
-[CrystalTile2](https://www.gamebrew.org/wiki/CrystalTile2)  
+[wxWidget](https://www.wxwidgets.org/)
+[Lua](https://www.lua.org/)
+[cJSON](https://github.com/DaveGamble/cJSON)
+[CrystalTile2](https://www.gamebrew.org/wiki/CrystalTile2)

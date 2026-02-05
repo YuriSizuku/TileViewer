@@ -106,7 +106,7 @@ void MainMenuBar::OnOpen(wxCommandEvent& WXUNUSED(event))
     return;
 
 menu_open_failed:
-    wxMessageBox(wxString::Format("open %s failed !", inpath), "error", wxICON_ERROR);
+    // wxMessageBox(wxString::Format("open %s failed !", inpath), "error", wxICON_ERROR);
     reset_tilenav(&g_tilenav);
     NOTIFY_UPDATE_TILENAV();
     NOTIFY_UPDATE_TILES(); // notify all
@@ -155,7 +155,7 @@ void MainMenuBar::OnPlugin(wxCommandEvent& event)
     return;
 
 menu_plugin_failed:
-    wxMessageBox(wxString::Format("plugin %s decode failed !", pluginfile.GetFullName()), "error", wxICON_ERROR);
+    // wxMessageBox(wxString::Format("plugin %s decode failed !", pluginfile.GetFullName()), "error", wxICON_ERROR);
     reset_tilenav(&g_tilenav);
     NOTIFY_UPDATE_TILENAV();
     NOTIFY_UPDATE_TILES(); // notify all

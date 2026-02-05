@@ -15,7 +15,6 @@ static char s_msg[4096] = {'\0'};
 extern struct tilecfg_t g_tilecfg;
 extern struct tilenav_t g_tilenav;
 extern struct tilestyle_t g_tilestyle;
-
 extern int luaopen_ui(lua_State *L);
 
 struct tile_decoder_t g_decoder_lua;
@@ -41,10 +40,10 @@ static struct decode_context_t
 } s_decode_context = {NULL};
 
 
-static int capi_log(lua_State* L) 
+static int capi_log(lua_State* L)
 {
     int nargs = lua_gettop(L);
-    for (int i=1; i <= nargs; i++) 
+    for (int i=1; i <= nargs; i++)
     {
         const char *text = luaL_tolstring(L, i, NULL); // get the string on stack
         strncat(s_msg, text, sizeof(s_msg) - strlen(s_msg) - 1);
@@ -96,7 +95,7 @@ static int capi_memreadi(lua_State *L)
     if(lua_gettop(L) < 2 && !lua_islightuserdata(L, 1)) return 0;
     int nargs = lua_gettop(L);
     struct memblock_t *block = (struct memblock_t *)lua_touserdata(L, 1);
-    
+
     size_t offset = 0;
     if(nargs > 2) offset = lua_tointeger(L, 3);
     if(offset >= block->n)  goto capi_memreadi_fail;
@@ -114,13 +113,13 @@ capi_memreadi_fail:
     return 1;
 }
 
-// memreads(p, size, offset) 
+// memreads(p, size, offset)
 static int capi_memreads(lua_State *L)
 {
     if(lua_gettop(L) < 1 && !lua_islightuserdata(L, 1)) return 0;
     int nargs = lua_gettop(L);
     struct memblock_t *block = (struct memblock_t *)lua_touserdata(L, 1);
-    
+
     size_t offset = 0;
     if(nargs > 2) offset = lua_tointeger(L, 3);
     if(offset >= block->n)  goto capi_memreads_fail;
@@ -142,7 +141,7 @@ static int capi_memwrite(lua_State *L)
     if(lua_gettop(L) < 2 && !lua_islightuserdata(L, 1)) return 0;
     int nargs = lua_gettop(L);
     struct memblock_t *block = (struct memblock_t *)lua_touserdata(L, 1);
-    
+
     size_t offset1 = 0;
     if(nargs > 3) offset1 = lua_tointeger(L, 4);
     if(offset1 >= block->n)  goto capi_memwrite_fail;
@@ -209,12 +208,12 @@ static int capi_get_tilecfg(lua_State* L)
 static int capi_set_tilecfg(lua_State* L)
 {
     if(lua_gettop(L) < 1 && !lua_istable(L, 1)) return 0;
-    
+
     lua_getfield(L, 1, "start");
     if(lua_isinteger(L, -1))
     {
         g_tilecfg.start = lua_tointeger(L, -1);
-        
+
     }
     lua_pop(L, 1);
 
@@ -224,35 +223,35 @@ static int capi_set_tilecfg(lua_State* L)
         g_tilecfg.size = lua_tointeger(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "w");
     if(lua_isinteger(L, -1))
     {
         g_tilecfg.w = lua_tointeger(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "h");
     if(lua_isinteger(L, -1))
     {
         g_tilecfg.h = lua_tointeger(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "bpp");
     if(lua_isinteger(L, -1))
     {
         g_tilecfg.bpp = lua_tointeger(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "nbytes");
     if(lua_isinteger(L, -1))
     {
         g_tilecfg.nbytes = lua_tointeger(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "nrow");
     if(lua_isinteger(L, -1))
     {
@@ -282,12 +281,12 @@ static int capi_get_tilenav(lua_State* L)
 static int capi_set_tilenav(lua_State* L)
 {
     if(lua_gettop(L) < 1 && !lua_istable(L, 1)) return 0;
-    
+
     lua_getfield(L, 1, "index");
     if(lua_isinteger(L, -1))
     {
         g_tilenav.index = lua_tointeger(L, -1);
-        
+
     }
     lua_pop(L, 1);
 
@@ -297,21 +296,21 @@ static int capi_set_tilenav(lua_State* L)
         g_tilenav.offset = lua_tointeger(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "x");
     if(lua_isinteger(L, -1))
     {
         g_tilenav.x = lua_tointeger(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "y");
     if(lua_isinteger(L, -1))
     {
         g_tilenav.y = lua_tointeger(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "scrollto");
     if(lua_isboolean(L, -1))
     {
@@ -337,12 +336,12 @@ static int capi_get_tilestyle(lua_State* L)
 static int capi_set_tilestyle(lua_State* L)
 {
     if(lua_gettop(L) < 1 && !lua_istable(L, 1)) return 0;
-    
+
     lua_getfield(L, 1, "style");
     if(lua_isinteger(L, -1))
     {
         g_tilestyle.style = lua_tointeger(L, -1);
-        
+
     }
     lua_pop(L, 1);
 
@@ -352,7 +351,7 @@ static int capi_set_tilestyle(lua_State* L)
         g_tilestyle.scale = lua_tonumber(L, -1);
     }
     lua_pop(L, 1);
-    
+
     lua_getfield(L, 1, "reset_scale");
     if(lua_isboolean(L, -1))
     {
@@ -383,7 +382,7 @@ static int capi_get_rawdata(lua_State *L)
     {
         offset = lua_tointeger(L, 1);
     }
-    
+
     if(offset > s_decode_context.rawsize)
     {
         lua_pushnil(L);
@@ -432,6 +431,7 @@ static void register_basic(lua_State *L)
 PLUGIN_STATUS STDCALL decode_open_lua(const char *luastr, void **context)
 {
     s_msg[0] = '\0';
+    PLUGIN_STATUS status = STATUS_OK;
     lua_State* L = luaL_newstate();
     if(!L) return STATUS_FAIL;
     luaL_openlibs(L);
@@ -440,27 +440,46 @@ PLUGIN_STATUS STDCALL decode_open_lua(const char *luastr, void **context)
     sprintf(s_msg, "[plugin_lua::open]\n");
     register_basic(L);
     register_extra(L);
-    if(luaL_dostring(L, luastr) != LUA_OK)
+    int luares = luaL_dostring(L, luastr);
+    if( luares != LUA_OK)
     {
-        const char *text = lua_tostring(L, -1);
-        sprintf(s_msg, " %s", text);
-        luaL_error(L, "Error: %s\n", text);
+        status = STATUS_SCRIPTERROR;
+        sprintf(s_msg, " %s", lua_tostring(L, -1));
         lua_close(L);
-        return STATUS_SCRIPTERROR;
+        goto decode_open_lua_end;
     }
 
+    // bind function
+    lua_getglobal(L, "decode_pre");
+    if(!lua_isfunction(L, -1)) g_decoder_lua.pre = NULL;
+    lua_pop(L, 1);
+
+    lua_getglobal(L, "decode_post");
+    if(!lua_isfunction(L, -1)) g_decoder_lua.post = NULL;
+    lua_pop(L, 1);
+
+    lua_getglobal(L, "decode_pixel");
+    if(!lua_isfunction(L, -1)) g_decoder_lua.decodeone = NULL;
+    lua_pop(L, 1);
+
     lua_getglobal(L, "decode_pixels");
-    if(!lua_isfunction(L, -1))
-    {
-        g_decoder_lua.decodeall = NULL;
-    }
+    if(!lua_isfunction(L, -1)) g_decoder_lua.decodeall = NULL;
+    lua_pop(L, 1);
+
+    lua_getglobal(L, "decode_sendui");
+    if(!lua_isfunction(L, -1)) g_decoder_lua.sendui = NULL;
+    lua_pop(L, 1);
+
+    lua_getglobal(L, "decode_recvui");
+    if(!lua_isfunction(L, -1)) g_decoder_lua.recvui = NULL;
     lua_pop(L, 1);
 
     s_decode_context.L = L;
     *context = &s_decode_context;
 
+decode_open_lua_end:
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return STATUS_OK;
+    return status;
 }
 
 PLUGIN_STATUS STDCALL decode_close_lua(void *context)
@@ -476,49 +495,173 @@ PLUGIN_STATUS STDCALL decode_close_lua(void *context)
     return STATUS_OK;
 }
 
+// function decode_pixel(i, x, y)
+PLUGIN_STATUS STDCALL decode_pixel_lua(void *context,
+    const uint8_t* data, size_t datasize,
+    const struct tilepos_t *pos, const struct tilefmt_t *fmt,
+    struct pixel_t *pixel, bool remain_index)
+{
+    s_msg[0] = '\0';
+    PLUGIN_STATUS status = STATUS_OK;
+    lua_State *L = ((struct decode_context_t*) context)->L;
+
+    lua_getglobal(L, "decode_pixel");
+    lua_pushinteger(L, pos->i);
+    lua_pushinteger(L, pos->x);
+    lua_pushinteger(L, pos->y);
+    if(lua_pcall(L, 3, 1, 0) != LUA_OK)
+    {
+        status = STATUS_FAIL;
+        sprintf(s_msg, "%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        goto decode_pixel_lua_end;
+    }
+    pixel->d = lua_tointeger(L, -1); // no check pixel valid here
+    lua_pop(L, 1); // should pop after lua_tointeger
+
+decode_pixel_lua_end:
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    return status;
+}
+
+PLUGIN_STATUS decode_pixels_lua(void *context,
+    const uint8_t* data, size_t datasize,
+    const struct tilefmt_t *fmt, struct pixel_t *pixels[],
+    size_t *npixel, bool remain_index)
+{
+    s_msg[0] = '\0';
+    PLUGIN_STATUS status = STATUS_OK;
+    lua_State *L = ((struct decode_context_t*) context)->L;
+
+    lua_getglobal(L, "decode_pixels");
+    if(lua_pcall(L, 0, 3, 0) != LUA_OK)
+    {
+        status = STATUS_FAIL;
+        sprintf(s_msg, "%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        goto decode_pixels_lua_end;
+    }
+    *npixel = lua_tointeger(L, 2);
+    size_t offset = lua_tointeger(L, 3);
+    if(lua_isuserdata(L, 1))
+    {
+        struct memblock_t* block = lua_touserdata(L, 1);
+        *pixels = (struct pixel_t *)((uint8_t*)block->p + offset);
+    }
+    else if(lua_isstring(L, 1))
+    {
+        const char *data = lua_tostring(L, 1);
+        *pixels = (struct pixel_t *) data;
+    }
+    else
+    {
+        lua_pop(L, 3);
+        status = STATUS_FAIL;
+        goto decode_pixels_lua_end;
+    }
+    lua_pop(L, 3);
+    status = STATUS_OK;
+
+decode_pixels_lua_end:
+    *npixel = 0;
+    *pixels = NULL;
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    return status;
+}
+
+PLUGIN_STATUS STDCALL decode_pre_lua(void *context,
+    const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
+{
+    s_msg[0] = '\0';
+    PLUGIN_STATUS status = STATUS_OK;
+    struct decode_context_t* _context = (struct decode_context_t*) context;
+    _context->rawdata = rawdata;
+    _context->rawsize = rawsize;
+    lua_State *L = _context->L;
+
+    if(cfg->start > rawsize)
+    {
+        status = STATUS_RANGERROR;
+        goto decode_pre_lua_end;
+    }
+
+    lua_getglobal(L, "decode_pre");
+    if(lua_pcall(L, 0, 1, 0) != LUA_OK)
+    {
+        status = STATUS_FAIL;
+        sprintf(s_msg, "%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        goto decode_pre_lua_end;
+    }
+    bool res = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+    status = res ? STATUS_OK : STATUS_FAIL;
+
+decode_pre_lua_end:
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    return status;
+}
+
+PLUGIN_STATUS STDCALL decode_post_lua(void *context,
+    const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
+{
+    s_msg[0] = '\0';
+    PLUGIN_STATUS status = STATUS_OK;
+    lua_State *L = ((struct decode_context_t*) context)->L;
+
+    lua_getglobal(L, "decode_post");
+    if(lua_pcall(L, 0, 1, 0) != LUA_OK)
+    {
+        status = STATUS_FAIL;
+        sprintf(s_msg, "%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        goto decode_post_lua_end;
+    }
+    bool res = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+decode_post_lua_end:
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    return res ? STATUS_OK : STATUS_FAIL;
+}
+
 PLUGIN_STATUS STDCALL decode_sendui_lua(void *context, const char **buf, size_t *bufsize)
 {
     s_msg[0] = '\0';
-    
+    PLUGIN_STATUS status = STATUS_OK;
     lua_State *L = ((struct decode_context_t*) context)->L;
+
     lua_getglobal(L, "decode_sendui");
-    if(!lua_isfunction(L, -1))
+    if(lua_pcall(L, 0, 1, 0) != LUA_OK)
     {
+        status = STATUS_FAIL;
+        sprintf(s_msg, "%s\n", lua_tostring(L, -1));
         lua_pop(L, 1);
-        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-        return STATUS_CALLBACKERROR;
+        goto decode_sendui_lua_end;
     }
-    lua_call(L, 0, 1);
     *buf = lua_tolstring(L, -1, bufsize);
     lua_pop(L, 1);
-
     sprintf(s_msg, "[plugin_lua::sendui] send %zu bytes\n", *bufsize);
-    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
 
-    return STATUS_OK;
+decode_sendui_lua_end:
+    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
+    return status;
 }
 
 PLUGIN_STATUS STDCALL decode_recvui_lua(void *context, const char *buf, size_t bufsize)
 {
     s_msg[0] = '\0';
-    sprintf(s_msg, "[plugin_lua::recvui] recv %zu bytes\n", bufsize);
-
+    PLUGIN_STATUS status = STATUS_OK;
     lua_State *L = ((struct decode_context_t*) context)->L;
-    lua_getglobal(L, "decode_recvui");
-    if(!lua_isfunction(L, -1))
-    {
-        lua_pop(L, 1);
-        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-        return STATUS_CALLBACKERROR;
-    }
-
     cJSON *root = cJSON_Parse(buf);
-    if(!root) goto decode_recvui_lua_fail;
+    if(!root) goto decode_recvui_lua_end;
     const cJSON* props = cJSON_GetObjectItem(root, "plugincfg");
     const cJSON* prop = NULL;
-    if(!props) goto decode_recvui_lua_fail;
-    
-    int  i=1;
+    if(!props) goto decode_recvui_lua_end;
+    sprintf(s_msg, "[plugin_lua::recvui] recv %zu bytes\n", bufsize);
+
+    int i=1;
+    lua_getglobal(L, "decode_recvui");
     lua_newtable(L); // root
     lua_newtable(L); // plugincfg
     cJSON_ArrayForEach(prop, props)
@@ -537,143 +680,36 @@ PLUGIN_STATUS STDCALL decode_recvui_lua(void *context, const char *buf, size_t b
         i++;
     }
     lua_setfield(L, -2, "plugincfg");
-    lua_call(L, 1, 1);
+    if (lua_pcall(L, 1, 1, 0) != LUA_OK)
+    {
+        status = STATUS_FAIL;
+        sprintf(s_msg, "%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
     bool res = lua_toboolean(L, -1);
     lua_pop(L, 1);
+    status = res ? STATUS_OK : STATUS_FAIL;
 
+decode_recvui_lua_end:
     if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    
     cJSON_Delete(root);
-    return res ? STATUS_OK : STATUS_FAIL;
-
-decode_recvui_lua_fail:
-    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    
-    cJSON_Delete(root);
-    return STATUS_FAIL;
-}
-
-// function decode_pixel(i, x, y)
-PLUGIN_STATUS STDCALL decode_pixel_lua(void *context, 
-    const uint8_t* data, size_t datasize,
-    const struct tilepos_t *pos, const struct tilefmt_t *fmt, 
-    struct pixel_t *pixel, bool remain_index)
-{
-    s_msg[0] = '\0';
-    lua_State *L = ((struct decode_context_t*) context)->L;
-    lua_getglobal(L, "decode_pixel");
-    if(!lua_isfunction(L, -1))
-    {
-        lua_pop(L, 1);
-        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-        return STATUS_CALLBACKERROR;
-    }
-    lua_pushinteger(L, pos->i);
-    lua_pushinteger(L, pos->x);
-    lua_pushinteger(L, pos->y);
-    lua_call(L, 3, 1);
-    pixel->d = lua_tointeger(L, -1); // no check pixel valid here
-    lua_pop(L, 1); // should pop after lua_tointeger
-    
-    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return STATUS_OK;
-}
-
-PLUGIN_STATUS decode_pixels_lua(void *context, 
-    const uint8_t* data, size_t datasize, 
-    const struct tilefmt_t *fmt, struct pixel_t *pixels[], 
-    size_t *npixel, bool remain_index)
-{
-    s_msg[0] = '\0';
-    lua_State *L = ((struct decode_context_t*) context)->L;
-    lua_getglobal(L, "decode_pixels");
-    if(!lua_isfunction(L, -1))
-    {
-        lua_pop(L, 1);
-        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-        return STATUS_CALLBACKERROR;
-    }
-
-    lua_call(L, 0, 3);
-    *npixel = lua_tointeger(L, 2);
-    size_t offset = lua_tointeger(L, 3);
-    if(lua_isuserdata(L, 1))
-    {
-        struct memblock_t* block = lua_touserdata(L, 1);
-        *pixels = (struct pixel_t *)((uint8_t*)block->p + offset); 
-    }
-    else if (lua_isstring(L, 1))
-    {
-        const char *data = lua_tostring(L, 1);
-        *pixels = (struct pixel_t *) data;
-    }
-    else
-    {
-        goto decode_pixels_fail;
-    }
-    lua_pop(L, 3);
-    
-    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return STATUS_OK;
-
-decode_pixels_fail:
-    *npixel = 0;
-    *pixels = NULL; 
-    return STATUS_FAIL;
-}
-
-
-PLUGIN_STATUS STDCALL decode_pre_lua(void *context, 
-    const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
-{
-    s_msg[0] = '\0';
-    struct decode_context_t* _context = (struct decode_context_t*) context;
-    _context->rawdata = rawdata;
-    _context->rawsize = rawsize;
-
-    if(cfg->start > rawsize) return STATUS_RANGERROR; 
-    
-    lua_State *L = _context->L;
-    lua_getglobal(L, "decode_pre");
-    if(!lua_isfunction(L, -1))
-    {
-        lua_pop(L, 1);
-        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-        return STATUS_CALLBACKERROR;
-    }
-    lua_call(L, 0, 1);
-    bool res = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-
-    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return res ? STATUS_OK : STATUS_FAIL;
-}
-
-PLUGIN_STATUS STDCALL decode_post_lua(void *context, 
-    const uint8_t* rawdata, size_t rawsize, struct tilecfg_t *cfg)
-{
-    s_msg[0] = '\0';
-    lua_State *L = ((struct decode_context_t*) context)->L;
-    lua_getglobal(L, "decode_post");
-    if(!lua_isfunction(L, -1))
-    {
-        lua_pop(L, 1);
-        if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-        return STATUS_CALLBACKERROR;
-    }
-    lua_call(L, 0, 1);
-    bool res = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-
-    if(s_msg[strlen(s_msg) - 1] =='\n') s_msg[strlen(s_msg) - 1] = '\0';
-    return res ? STATUS_OK : STATUS_FAIL;
+    return status;
 }
 
 struct tile_decoder_t g_decoder_lua = {
-    .version = 340, .size = sizeof(struct tile_decoder_t), 
-    .msg = s_msg, .context = NULL, 
-    .open = decode_open_lua, .close = decode_close_lua, 
-    .decodeone = decode_pixel_lua, .decodeall = decode_pixels_lua, 
-    .pre=decode_pre_lua, .post=decode_post_lua, 
-    .sendui=decode_sendui_lua, .recvui=decode_recvui_lua, 
+    .version = TILE_DECODER_VERSION(0, 3, 6, 0),
+    .size = sizeof(struct tile_decoder_t),
+    .msg = s_msg, .context = NULL,
+    .open = decode_open_lua, .close = decode_close_lua
 };
+
+struct tile_decoder_t* STDCALL get_decoder_lua()
+{
+    g_decoder_lua.decodeone = decode_pixel_lua;
+    g_decoder_lua.decodeall = decode_pixels_lua;
+    g_decoder_lua.pre = decode_pre_lua;
+    g_decoder_lua.post = decode_post_lua;
+    g_decoder_lua.sendui = decode_sendui_lua;
+    g_decoder_lua.recvui = decode_recvui_lua;
+    return &g_decoder_lua;
+}
